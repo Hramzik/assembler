@@ -1,9 +1,9 @@
 
 
-#include "asm.hpp"
+#include "disasm.hpp"
 
-#include "lib/onegin.hpp"
-#include "lib/stack.hpp"
+#include "onegin.hpp"
+#include "stack.hpp"
 
 
 Command_code  get_command_name  (char* command) {
@@ -25,36 +25,30 @@ Command_code  get_command_name  (char* command) {
 }
 
 
-Return_code assembler  (const char* source_name, const char* out_name) {
+Return_code disassembler  (const char* source_name, const char* out_name) {
 
     if (source_name == nullptr || out_name == nullptr) { return BAD_ARGS; }
 
 
-    FILE* source = fopen (source_name, "r");
-    FILE* out    = fopen (   out_name, "wb");
+    FILE* source = fopen (source_name, "rb");
+    FILE* out    = fopen (   out_name, "w");
 
 
     if (source == nullptr || out == nullptr) { return FILE_ERR; }
 
 
 
-    Preamble preamble = {'W', 'W', 1.0};
-    fwrite ( &preamble, Preamble_size, 1, out);/*
-    fwrite ( &preamble.signature_first_letter, sizeof preamble.signature, 1, out);
-    fwrite ( &preamble.version,   sizeof preamble.version,   1, out);*/
+    Preamble preamble = {};
+    fread (preamble, Preamble_size, 1, source);
 
 
-    Text* source_lines = initialize_text (source_name); //КОСТЫЛЬ!!! ПЕРЕПИСАТЬ!!!
+    Command_code command = UNKNOWN;
+
+    for (size_t bytes_read = 0; bytes_read < source_lines->num_lines; ) {
 
 
-    char   command [MAX_COMMAND_LEN] = "";
-    size_t commands_size             = source_lines->num_lines * (Command_size + Argument_size);
-    void*  commands                  = calloc (1, commands_size);
-
-    for (size_t line_ind = 0, bytes_filled = 0, command_ind = 0; line_ind < source_lines->num_lines; line_ind++) {
-
-
-        sscanf (source_lines->lines[line_ind].ptr, "%s", command); printf ("%s ", command);
+        fread (;
+        bytes_read += 
 
 
         Command_code command_code = get_command_name (command); printf ("%d\n", command_code);

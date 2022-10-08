@@ -52,6 +52,7 @@ struct Preamble_struct {
 
     char   signature_first_letter;
     char   signature_second_letter;
+    size_t out_file_size;
     double version;
 };
 

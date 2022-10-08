@@ -1,3 +1,12 @@
+#define COMMON_HPP_INCLUDED
+#ifndef COMMON_HPP_INCLUDED
+
+
+
+
+
+
+
 
 
 enum  Return_code  {
@@ -43,3 +52,11 @@ const size_t Argument_size     = sizeof (Argument);
 const size_t Preamble_size     = sizeof (Preamble);
 
 
+
+
+
+
+
+
+
+#endif

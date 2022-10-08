@@ -2,8 +2,8 @@
 
 #include "asm.hpp"
 
-#include "onegin.hpp"
-#include "stack.hpp"
+#include "lib/onegin.hpp"
+#include "lib/stack.hpp"
 
 
 Command_code  get_command_name  (char* command) {

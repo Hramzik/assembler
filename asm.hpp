@@ -10,9 +10,10 @@
 //-------------------- SETTINGS --------------------
 #define CREATE_LISTING_FILE
 
-#define default_listing_file_name "listing.txt"
-#define default_source_file_name  "code.txt"
-#define default_output_file_name  "out.txt"
+//#define work_folder               work/
+#define default_listing_file_name "work/listing.txt"
+#define default_source_file_name  "work/code.txt"
+#define default_output_file_name  "work/out.txt"
 
 const size_t MAX_COMMAND_LEN = 40;
 //--------------------------------------------------

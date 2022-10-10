@@ -10,7 +10,7 @@ checksignature
     RAX RBX RCX RDX
     MEMORY + seg fault
     pop ()
-
+clear (deleting answer, listing, original and out files)
 
 
 

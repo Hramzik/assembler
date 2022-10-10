@@ -1,5 +1,5 @@
-#define COMMON_HPP_INCLUDED
 #ifndef COMMON_HPP_INCLUDED
+#define COMMON_HPP_INCLUDED
 
 
 
@@ -9,13 +9,14 @@
 
 
 
-enum  Return_code  {
+#include <sys\stat.h>
+#include <locale.h>
+#include <string.h>
+#include <ctype.h>
+#include <math.h>
 
-    SUCCESS    = 0,
-    MEMORY_ERR = 1,
-    BAD_ARGS   = 2,
-    FILE_ERR   = 3,
-};
+#include "../lib/Return_code.hpp"
+
 
 enum Command_code {
 
@@ -46,7 +47,7 @@ typedef double Argument;
 typedef char   Command_mode;
 
 
-const size_t Command_size      = sizeof (Command_code);
+const size_t Command_code_size = sizeof (Command_code);
 const size_t Command_mode_size = sizeof (Command_mode);
 const size_t Argument_size     = sizeof (Argument);
 const size_t Preamble_size     = sizeof (Preamble);

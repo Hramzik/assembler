@@ -2,13 +2,14 @@
 #define ASM_HPP_INCLUDED
 
 
-#include <sys\stat.h>
-#include <locale.h>
-#include <string.h>
-#include <ctype.h>
-#include <math.h>
 
-#include "common.h"
+
+
+
+
+
+
+#include "common.hpp"
 
 
 //-------------------- SETTINGS --------------------

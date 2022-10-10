@@ -25,7 +25,7 @@ Command_code  get_command_name  (char* command) {
 }
 
 
-Return_code assembler  (const char* source_name, const char* out_name) {
+Return_code  assembler  (const char* source_name, const char* out_name) {
 
     if (source_name == nullptr || out_name == nullptr) { return BAD_ARGS; }
 
@@ -38,26 +38,20 @@ Return_code assembler  (const char* source_name, const char* out_name) {
 
 
 
-    Preamble preamble = {'W', 'W', 1.0};
-    fwrite ( &preamble, Preamble_size, 1, out);/*
-    fwrite ( &preamble.signature_first_letter, sizeof preamble.signature, 1, out);
-    fwrite ( &preamble.version,   sizeof preamble.version,   1, out);*/
-
-
     Text* source_lines = initialize_text (source_name); //КОСТЫЛЬ!!! ПЕРЕПИСАТЬ!!!
 
 
     char   command [MAX_COMMAND_LEN] = "";
-    size_t commands_size             = source_lines->num_lines * (Command_size + Argument_size);
+    size_t commands_size             = source_lines->num_lines * (Command_code_size + Argument_size);
     void*  commands                  = calloc (1, commands_size);
 
-    for (size_t line_ind = 0, bytes_filled = 0, command_ind = 0; line_ind < source_lines->num_lines; line_ind++) {
+    size_t bytes_filled = 0;
+    for (size_t line_ind = 0, command_ind = 0; line_ind < source_lines->num_lines; line_ind++) {
+
+        sscanf (source_lines->lines[line_ind].ptr, "%s", command);
 
 
-        sscanf (source_lines->lines[line_ind].ptr, "%s", command); printf ("%s ", command);
-
-
-        Command_code command_code = get_command_name (command); printf ("%d\n", command_code);
+        Command_code command_code = get_command_name (command);
         Command_mode command_mode = 0;
         Argument     argument;
 
@@ -71,7 +65,7 @@ Return_code assembler  (const char* source_name, const char* out_name) {
 
             case HALT:
 
-                binary_array_write       (commands, &command_code, Command_size, &bytes_filled);
+                binary_array_write (commands, &command_code, Command_code_size, &bytes_filled);
 
 
                 IF_CREATING_LISTING_FILE (listing_write (command_ind, command_code, command));
@@ -79,7 +73,7 @@ Return_code assembler  (const char* source_name, const char* out_name) {
 
             case OUT:
 
-                binary_array_write       (commands, &command_code, Command_size, &bytes_filled);
+                binary_array_write (commands, &command_code, Command_code_size, &bytes_filled);
 
 
                 IF_CREATING_LISTING_FILE (listing_write (command_ind, command_code, command));
@@ -90,7 +84,7 @@ Return_code assembler  (const char* source_name, const char* out_name) {
                 sscanf (source_lines->lines[line_ind].ptr, "%*s %lf", &argument);
 
                 command_mode = 0;                     //KOSTIL!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                binary_array_write (commands, &command_code, Command_size,      &bytes_filled);
+                binary_array_write (commands, &command_code, Command_code_size, &bytes_filled);
                 binary_array_write (commands, &command_mode, Command_mode_size, &bytes_filled);
                 binary_array_write (commands, &argument,     Argument_size,     &bytes_filled);
 
@@ -100,7 +94,7 @@ Return_code assembler  (const char* source_name, const char* out_name) {
 
             case POP:
 
-                binary_array_write       (commands, &command_code, Command_size, &bytes_filled);
+                binary_array_write       (commands, &command_code, Command_code_size, &bytes_filled);
 
 
                 IF_CREATING_LISTING_FILE (listing_write (command_ind, command_code, command));
@@ -108,7 +102,7 @@ Return_code assembler  (const char* source_name, const char* out_name) {
 
             case ADD:
 
-                binary_array_write       (commands, &command_code, Command_size, &bytes_filled);
+                binary_array_write       (commands, &command_code, Command_code_size, &bytes_filled);
 
 
                 IF_CREATING_LISTING_FILE (listing_write (command_ind, command_code, command));
@@ -116,7 +110,7 @@ Return_code assembler  (const char* source_name, const char* out_name) {
 
             case SUBSTRACT:
 
-                binary_array_write       (commands, &command_code, Command_size, &bytes_filled);
+                binary_array_write       (commands, &command_code, Command_code_size, &bytes_filled);
 
 
                 IF_CREATING_LISTING_FILE (listing_write (command_ind, command_code, command));
@@ -124,7 +118,7 @@ Return_code assembler  (const char* source_name, const char* out_name) {
 
             case MULTIPLY:
 
-                binary_array_write       (commands, &command_code, Command_size, &bytes_filled);
+                binary_array_write       (commands, &command_code, Command_code_size, &bytes_filled);
 
 
                 IF_CREATING_LISTING_FILE (listing_write (command_ind, command_code, command));
@@ -132,7 +126,7 @@ Return_code assembler  (const char* source_name, const char* out_name) {
 
             case DIVIDE:
 
-                binary_array_write       (commands, &command_code, Command_size, &bytes_filled);
+                binary_array_write       (commands, &command_code, Command_code_size, &bytes_filled);
 
 
                 IF_CREATING_LISTING_FILE (listing_write (command_ind, command_code, command));
@@ -147,7 +141,11 @@ Return_code assembler  (const char* source_name, const char* out_name) {
         command_ind++;
     }
 
-    fwrite ( commands, commands_size, 1, out);
+
+    Preamble preamble = {'W', 'W', bytes_filled, 1.0};
+    fwrite ( &preamble, Preamble_size, 1, out);
+
+    fwrite ( commands, bytes_filled,   1, out);
 
 
     cleanmemory (source_lines);
@@ -160,7 +158,7 @@ Return_code assembler  (const char* source_name, const char* out_name) {
 Return_code  binary_array_write  (void* array, void* filler, size_t size, size_t* bytes_filled) {
 
     memcpy ( (char*) array + *bytes_filled, filler, size);
-    *bytes_filled += Command_size;
+    *bytes_filled += size;
 
 
     return SUCCESS;
@@ -169,24 +167,30 @@ Return_code  binary_array_write  (void* array, void* filler, size_t size, size_t
 
 Return_code  listing_write  (size_t command_ind, Command_code command_code, char* command, Argument argument, Command_mode command_mode) {
 
-    FILE* listing_file = fopen (default_listing_file_name, "a"); //static
-    //static bool  first_function_call_flag = true;
+    static bool  first_function_call_flag = true;
+
+    FILE* listing_file = nullptr;
+    if (first_function_call_flag) { listing_file = fopen (default_listing_file_name, "w"); } //static
+    else                          { listing_file = fopen (default_listing_file_name, "a"); } //static
 
 
-    fprintf                           (listing_file, "%04zd %04X", command_ind, command_code);
+    if (command_ind == 0) {fprintf (listing_file, "num      code    mode    args    name    args\n    -----------------------------------------\n"); }
+    else { fprintf (listing_file, "\n    |\n"); }
 
-    if (command_mode != -1) { fprintf (listing_file, " %04X",      command_mode); }
-    else                    { fprintf (listing_file, "     "); }
+    fprintf (listing_file, "%04zd|    %04X", command_ind, command_code);
 
-    if ( !isnan (argument)) { fprintf (listing_file, " %2.1lf",       argument); }
-    else                    { fprintf (listing_file, "     "); }
-    fprintf                           (listing_file, " %s",        command);
-    if ( !isnan (argument)) { fprintf (listing_file, " %2.1lf",     argument); }
-    fprintf                           (listing_file, "\n");
+    if (command_mode != -1) { fprintf (listing_file, "    %04X",   command_mode); }
+    else                    { fprintf (listing_file, "        "); }
+
+    if ( !isnan (argument)) { fprintf (listing_file, "    %2.1lf", argument); }
+    else                    { fprintf (listing_file, "        "); }
+
+    fprintf                           (listing_file, "    %s",     command);
+    if ( !isnan (argument)) { fprintf (listing_file, "    %2.1lf", argument); }
 
 
     fclose (listing_file); //КОСТЫЛЬ!!!!! ПЕРЕДЕЛАТЬ!!!!!!!!!!
-    //if (first_function_call_flag) { atexit (fclose (listing_file)); }
+    if (first_function_call_flag) { first_function_call_flag = false; }
 
 
     return SUCCESS;

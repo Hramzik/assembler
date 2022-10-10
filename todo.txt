@@ -1,0 +1,19 @@
+answer: welcomde, version
+-i
+make.cpp
+proc dump
+dup
+hex listing?
+    labels + jumps
+    ifjumps
+checksignature
+    RAX RBX RCX RDX
+    MEMORY + seg fault
+    pop ()
+
+
+
+
+
+
+fun-mode

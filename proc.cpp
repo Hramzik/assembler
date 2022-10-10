@@ -1,12 +1,11 @@
 
 
-#include "headers/disasm.hpp"
+#include "headers/proc.hpp"
 
-#include "lib/onegin.hpp"
 #include "lib/stack.hpp"
 
 
-Return_code disassembler  (const char* source_name, const char* out_name) {
+Return_code processor (const char* source_name, const char* out_name) {
 
     if (source_name == nullptr || out_name == nullptr) { return BAD_ARGS; }
 
@@ -23,9 +22,16 @@ Return_code disassembler  (const char* source_name, const char* out_name) {
     fread (&preamble, 1, Preamble_size, source);
 
 
+
+
     Command_code command_code = UNKNOWN;
     Command_mode command_mode = 0;
     Argument     argument     = NAN;
+
+    bool halt_seen_flag = false;
+
+    Stack stack;
+    STACK_CTOR (&stack);
 
     for (size_t bytes_read = 0; bytes_read < preamble.out_file_size; ) {
 
@@ -41,48 +47,46 @@ Return_code disassembler  (const char* source_name, const char* out_name) {
 
             case HALT:
 
-                fprintf (out, "halt");
+                halt_seen_flag = true;
                 break;
 
             case OUT:
 
-                fprintf (out, "out");
+                fprintf (out, "%lf", stack_pop (&stack).value );
                 break;
 
             case PUSH:
 
-                fprintf (out, "push ");
-
                 bytes_read += fread (&command_mode, 1, Command_mode_size, source);
                 bytes_read += fread (&argument,     1, Argument_size,     source);
 
-                fprintf (out, "%lf", argument); //KOSTIL!!!!!!!!!!! SHOULD CHECK COMMAND_MODE
+                stack_push (&stack, argument); //SHOULD CHECK COMMAND_MODE
 
                 break;
 
             case POP:
 
-                fprintf (out, "pop");
+                //TOO SOON TO REALIZE
                 break;
 
             case ADD:
 
-                fprintf (out, "add");
+                stack_push (&stack, stack_pop (&stack).value + stack_pop (&stack).value);
                 break;
 
             case SUBSTRACT:
 
-                fprintf (out, "sub");
+                stack_push (&stack, - stack_pop (&stack).value + stack_pop (&stack).value);
                 break;
 
             case MULTIPLY:
 
-                fprintf (out, "mult");
+                stack_push (&stack, stack_pop (&stack).value * stack_pop (&stack).value);
                 break;
 
             case DIVIDE:
 
-                fprintf (out, "divide");
+                stack_push (&stack, 1 / stack_pop (&stack).value * stack_pop (&stack).value);
                 break;
 
             default:
@@ -92,15 +96,14 @@ Return_code disassembler  (const char* source_name, const char* out_name) {
         }
 
 
-        if (bytes_read != preamble.out_file_size) { fprintf (out, "\n"); }
+        if (halt_seen_flag) { break; }
     }
 
 
-    fclose (source);
-    fclose (out);
+    fclose      (source);
+    fclose      (out);
+    STACK_DTOR (&stack);
 
 
     return SUCCESS;
 }
-
-

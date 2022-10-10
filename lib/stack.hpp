@@ -20,7 +20,7 @@
 
 //-------------------- SETTINGS --------------------
 #define ON_STACK_ERROR_DUMPING
-#define ON_STACK_AFTER_OPERATION_DUMPING
+#define ON_STACK_AFTER_OPERATION_DUMPIN
 #define ON_CANARY_PROTECTION
 #define ON_HASH_PROTECTION
 

@@ -13,18 +13,11 @@
 #include <stdio.h>
 #include <time.h>
 
+#include "Return_code.hpp"
+
 
 #define log_file_name "logs.txt"
 #define LOG_ERROR(code) _log_error (code, __FILE__, __PRETTY_FUNCTION__, __LINE__)
-
-/*
-enum  Return_code  {
-
-    SUCCESS    = 0,
-    MEMORY_ERR = 1,
-    BAD_ARGS   = 2,
-    FILE_ERR   = 3,
-};*/                 //КОСТЫЛЬ!!!!!!!!!!! РАЗОБРАТЬСЯ!!!!!!!!!!!!
 
 
 static const size_t time_str_len = 40;

@@ -15,21 +15,21 @@ default_name = prog
 
 
 
-all: allobjects
-	$(call compile, mainasm.o,    asm.o,    asm)
-	$(call compile, maindisasm.o, disasm.o, disasm)
-	$(call compile, mainproc.o,   proc.o,   proc)
+all:
+	$(call compile, mainasm.cpp,    asm.cpp,    asm)
+	$(call compile, maindisasm.cpp, disasm.cpp, disasm)
+	$(call compile, mainproc.cpp,   proc.cpp,   proc)
 
 
 
-asm: mainasm.o asm.o
-	$(call compile, mainasm.o,    asm.o,    $(default_name) )
+asm:
+	$(call compile, mainasm.cpp,    asm.cpp,    $(default_name) )
 
-disasm: maindisasm.o disasm.o
-	$(call compile, maindisasm.o, disasm.o, $(default_name) )
+disasm:
+	$(call compile, maindisasm.cpp, disasm.cpp, $(default_name) )
 
-proc: mainproc.o proc.o
-	$(call compile, mainproc.o,   proc.o,   $(default_name) )
+proc:
+	$(call compile, mainproc.cpp,   proc.cpp,   $(default_name) )
 
 
 

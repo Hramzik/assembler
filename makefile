@@ -31,30 +31,3 @@ disasm:
 proc:
 	$(call compile, mainproc.cpp,   proc.cpp,   $(default_name) )
 
-
-
-allobjects: asm.o mainasm.o disasm.o maindisasm.o proc.o mainproc.o
-
-asm.o: asm.cpp
-	$(sc) $(cc) -c asm.cpp -o asm.o $(flags)
-
-mainasm.o: mainasm.cpp
-	$(sc) $(cc) -c mainasm.cpp -o mainasm.o $(flags)
-
-disasm.o: disasm.cpp
-	$(sc) $(cc) -c disasm.cpp -o disasm.o $(flags)
-
-maindisasm.o: maindisasm.cpp
-	$(sc) $(cc) -c maindisasm.cpp -o maindisasm.o $(flags)
-
-proc.o: proc.cpp
-	$(sc) $(cc) -c proc.cpp -o proc.o $(flags)
-
-mainproc.o: mainproc.cpp
-	$(sc) $(cc) -c mainproc.cpp -o mainproc.o $(flags)
-
-
-
-clean:
-	rm -rf *.o prog
-

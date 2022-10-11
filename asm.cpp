@@ -170,8 +170,8 @@ Return_code  listing_write  (size_t command_ind, Command_code command_code, char
     static bool  first_function_call_flag = true;
 
     FILE* listing_file = nullptr;
-    if (first_function_call_flag) { listing_file = fopen (default_listing_file_name, "w"); } //static
-    else                          { listing_file = fopen (default_listing_file_name, "a"); } //static
+    if (first_function_call_flag) { listing_file = fopen (default_listing_file_name, "w"); }
+    else                          { listing_file = fopen (default_listing_file_name, "a"); }
 
 
     if (command_ind == 0) {fprintf (listing_file, "num      code    mode    args    name    args\n    -----------------------------------------\n"); }
@@ -189,9 +189,8 @@ Return_code  listing_write  (size_t command_ind, Command_code command_code, char
     if ( !isnan (argument)) { fprintf (listing_file, "    %2.1lf", argument); }
 
 
-    fclose (listing_file); //КОСТЫЛЬ!!!!! ПЕРЕДЕЛАТЬ!!!!!!!!!!
+    fclose (listing_file);
     if (first_function_call_flag) { first_function_call_flag = false; }
-
 
     return SUCCESS;
 }

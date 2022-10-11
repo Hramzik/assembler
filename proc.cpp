@@ -5,23 +5,28 @@
 #include "lib/stack.hpp"
 
 
-Return_code processor (const char* source_name, const char* out_name) {
+Return_code  processor  (const char* source_name, const char* out_name) {
 
     if (source_name == nullptr || out_name == nullptr) { return BAD_ARGS; }
 
 
     FILE* source = fopen (source_name, "rb");
-    FILE* out    = fopen (   out_name, "w");
 
-
-    if (source == nullptr || out == nullptr) { return FILE_ERR; }
-
+    if (source == nullptr) { return FILE_ERR; }
 
 
     Preamble preamble = {};
     fread (&preamble, 1, Preamble_size, source);
 
 
+    Return_code return_code = SUCCESS;
+    return_code = greetings (preamble.version, preamble.signature_first_letter, preamble.signature_second_letter);
+    if (return_code) { LOG_ERROR (return_code); return return_code; }
+
+
+    FILE* out = fopen (out_name, "a");
+
+    if (out == nullptr) { return FILE_ERR; }
 
 
     Command_code command_code = UNKNOWN;
@@ -106,4 +111,46 @@ Return_code processor (const char* source_name, const char* out_name) {
 
 
     return SUCCESS;
+}
+
+
+Return_code  greetings  (double version, char signature_first_letter, char signature_second_letter, const char* out_name) {
+
+    FILE* out = fopen (out_name, "w");
+    if (out == nullptr) { return FILE_ERR; }
+
+    if (signature_first_letter != wanted_signature[0] or signature_second_letter != wanted_signature[1]) { return BAD_ARGS; }
+
+
+    fprintf (out, "Welcome to the processor module! (version %lf)\n\n", version);
+
+
+    fclose (out);
+
+
+    return SUCCESS;
+}
+
+
+Return_code  processor_i  (const char* out_name) {
+
+    const char* fuck_off = out_name; fuck_off += 1;
+    printf ("ayo!");
+    return SUCCESS;
+}
+
+
+bool  isinteractive (int num_str, char** string_array) {
+
+    assert (string_array != nullptr);
+
+
+    bool return_value = false;
+    for (int i = 0; i < num_str; i++) {
+
+        if (string_array [i] != nullptr && !strcmp (string_array [i], interactive_flag)) { return_value = true; break; }
+    }
+
+
+    return return_value;
 }

@@ -29,6 +29,7 @@ Return_code  processor  (const char* source_name, const char* out_name) {
     if (out == nullptr) { return FILE_ERR; }
 
 
+    size_t       command_ind  = 1;
     Command_code command_code = UNKNOWN;
     Command_mode command_mode = 0;
     Argument     argument     = NAN;

@@ -38,7 +38,14 @@ Return_code  assembler  (const char* source_name, const char* out_name) {
 
 
 
-    Text* source_lines = initialize_text (source_name); //КОСТЫЛЬ!!! ПЕРЕПИСАТЬ!!!
+    Text* source_lines = initialize_text (source_name); //КОСТЫЛЬ!!! ПЕРЕПИСАТЬ через FILE*
+
+    Label label_list [MAX_COMMAND_LEN] = {};
+
+    for (size_t i = 0; i < MAX_COMMAND_LEN; i++) {
+
+        label_list [i] = Label {-1, nullptr};
+    }
 
 
     char   command [MAX_COMMAND_LEN] = "";
@@ -46,7 +53,8 @@ Return_code  assembler  (const char* source_name, const char* out_name) {
     void*  commands                  = calloc (1, commands_size);
 
     size_t bytes_filled = 0;
-    for (size_t line_ind = 0, command_ind = 0; line_ind < source_lines->num_lines; line_ind++) {
+    size_t command_ind  = 0;
+    for (size_t line_ind = 0; line_ind < source_lines->num_lines; line_ind++) {
 
         sscanf (source_lines->lines[line_ind].ptr, "%s", command);
 
@@ -60,8 +68,18 @@ Return_code  assembler  (const char* source_name, const char* out_name) {
 
             case UNKNOWN:
 
-                LOG_ERROR (BAD_ARGS);
-                return BAD_ARGS;
+                if (islabel (command)) {
+
+                    label_list [command_ind] = { command_ind, command };
+                    command_ind--;
+                    break;
+                }
+
+                else {
+
+                    LOG_ERROR (BAD_ARGS);
+                    return BAD_ARGS;
+                }
 
             case HALT:
 
@@ -132,6 +150,9 @@ Return_code  assembler  (const char* source_name, const char* out_name) {
                 IF_CREATING_LISTING_FILE (listing_write (command_ind, command_code, command));
                 break;
 
+            case JUMP:
+
+                sscanf (source_lines->lines[line_ind].ptr, "%*s %lf", &argument);
             default:
 
                 LOG_ERROR (BAD_ARGS);
@@ -142,7 +163,7 @@ Return_code  assembler  (const char* source_name, const char* out_name) {
     }
 
 
-    Preamble preamble = {'W', 'W', bytes_filled, 1.0};
+    Preamble preamble = {'W', 'W', bytes_filled, command_ind, 1.0};
     fwrite ( &preamble, Preamble_size, 1, out);
 
     fwrite ( commands, bytes_filled,   1, out);
@@ -196,3 +217,11 @@ Return_code  listing_write  (size_t command_ind, Command_code command_code, char
 }
 
 
+bool  islabel  (char* str) {
+
+    if (str == nullptr) { return false; }
+
+    if (isdigit (str[0]) and str [strlen (str) - 1] != ':') { return false; } // add check for words after label (bad)
+
+    return true;
+}

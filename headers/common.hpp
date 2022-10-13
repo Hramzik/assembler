@@ -29,6 +29,7 @@ enum Command_code {
     SUBSTRACT = 6,
     MULTIPLY  = 7,
     DIVIDE    = 8,
+    JUMP      = 9,
 };
 
 
@@ -37,6 +38,7 @@ struct Preamble_struct {
     char   signature_first_letter;
     char   signature_second_letter;
     size_t out_file_size;
+    size_t num_commands;
     double version;
 };
 

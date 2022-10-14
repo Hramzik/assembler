@@ -31,3 +31,5 @@ disasm:
 proc:
 	$(call compile, mainproc.cpp,   proc.cpp,   $(default_name) )
 
+test:
+	@ gcc test.cpp -o prog

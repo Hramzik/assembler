@@ -10,36 +10,16 @@
 
 
 #include "logs.hpp"
+#include "Text.hpp"
 
 
 #define CHAR_SIZE sizeof (char)
 #define LINE_SIZE sizeof (Line)
 
 
-typedef struct Line_structure Line;
-typedef struct Text_structure Text;
-
-
 static Line* const lines_freed = 0;
 static char* const   str_freed = 0;
 
-
-
-struct Line_structure {
-
-    char*  ptr = nullptr;
-    size_t len = 0;
-    size_t start_index = 0;
-    bool   isblank = false;
-};
-
-struct Text_structure {
-
-    Line*  lines = nullptr;
-    size_t num_lines = 0;
-    char*  buffer = nullptr;
-    size_t buffer_len = 0;
-};
 
 Return_code readfile_into_Text     (const char* file_name, Text* ptrtext);
 char*       delete_slash_r         (char* str);
@@ -664,12 +644,11 @@ size_t  get_file_len  (FILE* file) {
 
 bool  isblank  (char* str) {
 
-    size_t ind = 0;
-    while (str[ind] != '\0') {
+    for (size_t i = 0; str[i] != '\0'; i++) {
 
-        if (isalpha (str[ind])) return false;
+        if (isalpha (str[i])) return false;
 
-        ind++;
+        i++;
     }
 
     return true;

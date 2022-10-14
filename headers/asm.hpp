@@ -10,7 +10,7 @@
 
 
 #include "common.hpp"
-
+#include "../lib/Text.hpp"
 
 //-------------------- SETTINGS --------------------
 #define CREATE_LISTING_FILE
@@ -21,6 +21,8 @@
 #define default_output_file_name  "work/out.txt"
 
 const size_t MAX_COMMAND_LEN = 40;
+const size_t MAX_LABEL_LEN   = 40;
+const size_t MAX_LABEL_COUNT = 40;
 //--------------------------------------------------
 
 
@@ -33,8 +35,9 @@ const size_t MAX_COMMAND_LEN = 40;
 
 struct Label_structure {
 
-    int   pointingto;
-    char* name;
+    size_t command_ind;
+    size_t ip;
+    char*  name;
 };
 
 
@@ -45,8 +48,8 @@ Command_code get_command_name   (char* command);
 Return_code  assembler          (const char* source_name = default_source_file_name, const char* out_name = default_output_file_name);
 Return_code  binary_array_write (void* array, void* filler, size_t size, size_t* bytes_filled);
 Return_code  listing_write      (size_t command_ind, Command_code command_code, char* command, Argument argument = NAN, Command_mode command_mode = -1);
-bool         islabel            (char* str);
-
+bool         _islabel           (char* str);
+Return_code  _collect_labels     (Label* label_list, const Text* source_lines);
 
 
 

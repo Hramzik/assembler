@@ -30,6 +30,7 @@ enum Command_code {
     MULTIPLY  = 7,
     DIVIDE    = 8,
     JUMP      = 9,
+    DUPLICATE = 10,
 };
 
 

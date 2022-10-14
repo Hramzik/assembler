@@ -5,7 +5,7 @@
 #include "lib/stack.hpp"
 
 
-Return_code  processor  (const char* source_name, const char* out_name) {
+Return_code  processor_run  (const char* source_name, const char* out_name) {
 
     if (source_name == nullptr || out_name == nullptr) { return BAD_ARGS; }
 
@@ -19,17 +19,21 @@ Return_code  processor  (const char* source_name, const char* out_name) {
     fread (&preamble, 1, Preamble_size, source);
 
 
-    Return_code return_code = SUCCESS;
-    return_code = greetings (preamble.version, preamble.signature_first_letter, preamble.signature_second_letter);
+    Return_code return_code = greetings (preamble.version, preamble.signature_first_letter, preamble.signature_second_letter);
     if (return_code) { LOG_ERROR (return_code); return return_code; }
 
 
-    FILE* out = fopen (out_name, "a");
+    Processor   processor   = {0, nullptr, NAN, NAN, NAN, NAN, nullptr};
+    return_code             = initialize_processor (&processor,preamble.out_file_size);
+    if (return_code) { LOG_ERROR (return_code); return return_code; }
 
+    fread (processor.code, 1, preamble.out_file_size, source);
+
+
+    FILE* out = fopen (out_name, "a");
     if (out == nullptr) { return FILE_ERR; }
 
 
-    size_t       command_ind  = 1;
     Command_code command_code = UNKNOWN;
     Command_mode command_mode = 0;
     Argument     argument     = NAN;
@@ -39,9 +43,10 @@ Return_code  processor  (const char* source_name, const char* out_name) {
     Stack stack;
     STACK_CTOR (&stack);
 
-    for (size_t bytes_read = 0; bytes_read < preamble.out_file_size; ) {
+    for ( ; processor.ip < preamble.out_file_size; ) {
 
-        bytes_read += fread (&command_code, 1, Command_code_size, source);
+        command_code  = * (Command_code*) ( (char*) processor.code + processor.ip);
+        processor.ip += Command_code_size;
 
 
         switch (command_code) {
@@ -58,13 +63,13 @@ Return_code  processor  (const char* source_name, const char* out_name) {
 
             case OUT:
 
-                fprintf (out, "%lf", stack_pop (&stack).value );
+                fprintf (out, "%lf\n", stack_pop (&stack).value ); //func
                 break;
 
             case PUSH:
 
-                bytes_read += fread (&command_mode, 1, Command_mode_size, source);
-                bytes_read += fread (&argument,     1, Argument_size,     source);
+                command_mode = * (Command_mode*) ( (char*) processor.code + processor.ip); processor.ip += Command_mode_size;
+                argument     = * (Argument*)     ( (char*) processor.code + processor.ip); processor.ip += Argument_size;
 
                 stack_push (&stack, argument); //SHOULD CHECK COMMAND_MODE
 
@@ -93,6 +98,18 @@ Return_code  processor  (const char* source_name, const char* out_name) {
             case DIVIDE:
 
                 stack_push (&stack, 1 / stack_pop (&stack).value * stack_pop (&stack).value);
+                break;
+
+            case JUMP:
+
+                processor.ip = (size_t) round ( * (Argument*) ( (char*) processor.code + processor.ip));
+                break;
+
+            case DUPLICATE:
+
+                argument = stack_pop (&stack).value;
+                stack_push (&stack, argument);
+                stack_push (&stack, argument);
                 break;
 
             default:
@@ -133,7 +150,7 @@ Return_code  greetings  (double version, char signature_first_letter, char signa
 }
 
 
-Return_code  processor_i  (const char* out_name) {
+Return_code  processor_run_i  (const char* out_name) {
 
     const char* fuck_off = out_name; fuck_off += 1;
     printf ("ayo!");
@@ -154,4 +171,27 @@ bool  isinteractive (int num_str, char** string_array) {
 
 
     return return_value;
+}
+
+
+Return_code  initialize_processor  (Processor* processor, size_t commands_size, size_t memory_size) {
+
+    if (!processor) { LOG_ERROR (BAD_ARGS); return BAD_ARGS; }
+
+
+    processor->ip = 0;
+
+    processor->code = calloc (commands_size, 1);
+    if (!processor->code) { LOG_ERROR (MEMORY_ERR); return MEMORY_ERR; }
+
+    processor->RAX = NAN;
+    processor->RBX = NAN;
+    processor->RCX = NAN;
+    processor->RDX = NAN;
+
+    processor->memory = (Argument*) calloc (memory_size, 1);
+    if (!processor->memory) { LOG_ERROR (MEMORY_ERR); return MEMORY_ERR; }
+
+
+    return SUCCESS;
 }

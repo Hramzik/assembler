@@ -85,6 +85,16 @@ Return_code disassembler  (const char* source_name, const char* out_name) {
                 fprintf (out, "divide");
                 break;
 
+            case JUMP:
+
+                fprintf (out, "jump");
+                break;
+
+            case DUPLICATE:
+
+                fprintf (out, "duplicate");
+                break;
+
             default:
 
                 LOG_ERROR (BAD_ARGS);

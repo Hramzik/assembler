@@ -10,6 +10,7 @@
 
 
 #include "common.hpp"
+#include "../lib/stack.hpp"
 
 
 //-------------------- SETTINGS --------------------
@@ -35,6 +36,8 @@ struct Processor_structure {
     Argument  RCX;
     Argument  RDX;
     Argument* memory;
+    Stack*    stack;
+    Stack*    function_call_stack;
 };
 
 

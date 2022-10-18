@@ -58,6 +58,7 @@ Return_code disassembler  (const char* source_name, const char* out_name) {
 
                 fprintf (out, "%lf", argument); //KOSTIL!!!!!!!!!!! SHOULD CHECK COMMAND_MODE
 
+
                 break;
 
             case POP:
@@ -94,6 +95,17 @@ Return_code disassembler  (const char* source_name, const char* out_name) {
 
                 fprintf (out, "duplicate");
                 break;
+
+            case CALL:
+
+            fprintf (out, "call ");
+
+            bytes_read += fread (&argument, 1, Argument_size, source);
+
+            fprintf (out, "%lf", argument);
+
+
+            break;
 
             default:
 

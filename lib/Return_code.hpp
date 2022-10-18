@@ -9,10 +9,11 @@
 
 
 
-#define try(x)\
+#define try(x) {\
 \
     Return_code return_code = x;\
-    if (return_code) { LOG_ERROR (return_code); return return_code; }
+    if (return_code) { LOG_ERROR (return_code); return return_code; }\
+}
 
 
 enum  Return_code  {

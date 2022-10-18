@@ -1,0 +1,42 @@
+after pop: func
+func:
+    if 0 in memory: .
+    if not 0: *
+    after 10-20 simbols \n
+
+problem: cirle, radius r
+sin, cos -> proc
+
+videomem: how to gwt file (decoding) from video
+200x200 -> 100x100, 4 pixels -> 1
+
+or
+after pop: no func
+new func: redraw
+
+^monochrome text
+
+or printf %c, memory[i]
+Hello, world
+
+or  :2 -> simbol
+not :2 -> color
+
+txlib - graphical lib (fone clr, simble clr) setconsoleoutter
+or escape-sequence
+or sfml, but hard
+or sdl
+
+func:
+open window
+draw square (3x3, 5x5)
+
+dark color     - dark gray
+between pixels - gap (1x1)
+
+^black-white
+
+rgb:
+r g b r g b r g b r g b ...
+(in 1 int r, g, b, gap)
+

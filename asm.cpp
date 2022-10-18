@@ -22,6 +22,7 @@ Command_code  get_command_name  (char* command) {
     if ( !stricmp (command, "divide")    || !stricmp (command, "div"))                               { return DIVIDE; }
     if ( !stricmp (command, "jump")      || !stricmp (command, "jmp"))                               { return JUMP; }
     if ( !stricmp (command, "duplicate") || !stricmp (command, "dup"))                               { return DUPLICATE; }
+    if ( !stricmp (command, "call"))                                                                 { return CALL; }
 
     return UNKNOWN;
 }
@@ -63,7 +64,6 @@ Return_code  assembler  (const char* source_name, const char* out_name) {
         Command_code command_code = get_command_name (command);
         Command_mode command_mode = 0;
         Argument     argument     = NAN;
-        char jump_text_argument [MAX_LABEL_LEN] = "";
 
 
         switch (command_code) {
@@ -113,7 +113,7 @@ Return_code  assembler  (const char* source_name, const char* out_name) {
 
             case POP:
 
-                binary_array_write       (commands, &command_code, Command_code_size, &bytes_filled);
+                binary_array_write (commands, &command_code, Command_code_size, &bytes_filled);
 
 
                 IF_CREATING_LISTING_FILE (listing_write (command_ind, command_code, command));
@@ -121,7 +121,7 @@ Return_code  assembler  (const char* source_name, const char* out_name) {
 
             case ADD:
 
-                binary_array_write       (commands, &command_code, Command_code_size, &bytes_filled);
+                binary_array_write (commands, &command_code, Command_code_size, &bytes_filled);
 
 
                 IF_CREATING_LISTING_FILE (listing_write (command_ind, command_code, command));
@@ -129,7 +129,7 @@ Return_code  assembler  (const char* source_name, const char* out_name) {
 
             case SUBSTRACT:
 
-                binary_array_write       (commands, &command_code, Command_code_size, &bytes_filled);
+                binary_array_write (commands, &command_code, Command_code_size, &bytes_filled);
 
 
                 IF_CREATING_LISTING_FILE (listing_write (command_ind, command_code, command));
@@ -137,7 +137,7 @@ Return_code  assembler  (const char* source_name, const char* out_name) {
 
             case MULTIPLY:
 
-                binary_array_write       (commands, &command_code, Command_code_size, &bytes_filled);
+                binary_array_write (commands, &command_code, Command_code_size, &bytes_filled);
 
 
                 IF_CREATING_LISTING_FILE (listing_write (command_ind, command_code, command));
@@ -145,41 +145,34 @@ Return_code  assembler  (const char* source_name, const char* out_name) {
 
             case DIVIDE:
 
-                binary_array_write       (commands, &command_code, Command_code_size, &bytes_filled);
+                binary_array_write (commands, &command_code, Command_code_size, &bytes_filled);
 
 
                 IF_CREATING_LISTING_FILE (listing_write (command_ind, command_code, command));
                 break;
 
-            case JUMP: {
+            case JUMP:
 
-                sscanf (source_lines->lines[line_ind].ptr, "%*s %s", jump_text_argument);
-
-
-                size_t i = 0;
-                bool label_found = false;
-                for ( ; i < MAX_LABEL_COUNT; i++) {
-
-                    if (!strcmp (label_list [i].name, jump_text_argument)) { label_found = true; break; }
-                }
-                if (!label_found) { LOG_ERROR (BAD_ARGS); return BAD_ARGS; }
-
-
-                argument = (double) label_list [i].ip;
-                binary_array_write (commands, &command_code, Command_code_size, &bytes_filled);
-                binary_array_write (commands, &argument,     Argument_size,     &bytes_filled);
+                _asm_case_jump (source_lines->lines[line_ind].ptr, label_list, commands, &bytes_filled);
 
 
                 IF_CREATING_LISTING_FILE (listing_write (command_ind, command_code, command, argument));
                 break;
-            }
 
             case DUPLICATE:
 
-                binary_array_write       (commands, &command_code, Command_code_size, &bytes_filled);
+                binary_array_write (commands, &command_code, Command_code_size, &bytes_filled);
 
 
                 IF_CREATING_LISTING_FILE (listing_write (command_ind, command_code, command));
+                break;
+
+            case CALL:
+
+                _asm_case_call (source_lines->lines[line_ind].ptr, label_list, commands, &bytes_filled);
+
+
+                IF_CREATING_LISTING_FILE (listing_write (command_ind, command_code, command, argument));
                 break;
 
             default:
@@ -262,7 +255,7 @@ bool  _islabel  (char* str) {
 
 Return_code  _collect_labels  (Label* label_list, const Text* source_lines) {
 
-    assert (label_list && source_lines);
+    if (!label_list || !source_lines) { LOG_ERROR (BAD_ARGS); return BAD_ARGS; }
 
 
     for (size_t i = 0; i < MAX_LABEL_COUNT; i++) {
@@ -361,6 +354,12 @@ Return_code  _collect_labels  (Label* label_list, const Text* source_lines) {
                 bytes_filled += Command_code_size;
                 break;
 
+            case CALL:
+
+                bytes_filled += Command_code_size;
+                bytes_filled += Argument_size;
+                break;
+
             default:
 
                 LOG_ERROR (BAD_ARGS);
@@ -375,3 +374,67 @@ Return_code  _collect_labels  (Label* label_list, const Text* source_lines) {
 }
 
 
+Return_code  _asm_case_jump  (char* source, Label* label_list, void* commands, size_t* bytes_filled) {
+
+    if (!source || !label_list || !commands || !bytes_filled) { LOG_ERROR (BAD_ARGS); return BAD_ARGS; }
+
+
+    Argument argument = NAN;
+    char jump_text_argument [MAX_LABEL_LEN] = "";
+
+    sscanf (source, "%*s %s", jump_text_argument);
+
+
+    size_t i = _find_label (label_list, jump_text_argument);
+    argument = (double) label_list [i].ip;
+
+
+    Command_code command_code = JUMP;
+    binary_array_write (commands, &command_code, Command_code_size, bytes_filled);
+    binary_array_write (commands, &argument,     Argument_size,     bytes_filled);
+
+
+    return SUCCESS;
+}
+
+
+Return_code  _asm_case_call  (char* source, Label* label_list, void* commands, size_t* bytes_filled) {
+
+    
+    if (!source || !label_list || !commands || !bytes_filled) { LOG_ERROR (BAD_ARGS); return BAD_ARGS; }
+
+
+    Argument argument = NAN;
+    char jump_text_argument [MAX_LABEL_LEN] = "";
+
+    sscanf (source, "%*s %s", jump_text_argument);
+
+
+    size_t i = _find_label (label_list, jump_text_argument);
+    argument = (double) label_list [i].ip;
+
+
+    Command_code command_code = CALL;
+    binary_array_write (commands, &command_code, Command_code_size, bytes_filled);
+    binary_array_write (commands, &argument,     Argument_size,     bytes_filled);
+
+
+    return SUCCESS;
+}
+
+
+size_t  _find_label (Label* label_list, char* label_str) {
+
+    if (!label_list || !label_str) { LOG_ERROR (BAD_ARGS); return 0; }
+    size_t i = 0;
+    bool label_found = false;
+    for ( ; i < MAX_LABEL_COUNT; i++) {
+
+        if (!strcmp (label_list [i].name, label_str)) { label_found = true; break; }
+    }
+
+    if (!label_found) { LOG_ERROR (BAD_ARGS); return 0; }
+
+
+    return i;
+}

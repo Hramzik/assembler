@@ -23,9 +23,9 @@ Return_code  processor_run  (const char* source_name, const char* out_name) {
     if (return_code) { LOG_ERROR (return_code); return return_code; }
 
 
-    Processor   processor   = {0, nullptr, NAN, NAN, NAN, NAN, nullptr};
-    return_code             = initialize_processor (&processor,preamble.out_file_size);
-    if (return_code) { LOG_ERROR (return_code); return return_code; }
+    Processor   processor   = {0, nullptr, NAN, NAN, NAN, NAN, nullptr, nullptr, nullptr};
+    try (initialize_processor (&processor, preamble.out_file_size));
+
 
     fread (processor.code, 1, preamble.out_file_size, source);
 
@@ -40,8 +40,6 @@ Return_code  processor_run  (const char* source_name, const char* out_name) {
 
     bool halt_seen_flag = false;
 
-    Stack stack;
-    STACK_CTOR (&stack);
 
     for ( ; processor.ip < preamble.out_file_size; ) {
 
@@ -63,7 +61,7 @@ Return_code  processor_run  (const char* source_name, const char* out_name) {
 
             case OUT:
 
-                fprintf (out, "%lf\n", stack_pop (&stack).value ); //func
+                fprintf (out, "%lf\n", stack_pop (processor.stack).value ); //func
                 break;
 
             case PUSH:
@@ -71,7 +69,7 @@ Return_code  processor_run  (const char* source_name, const char* out_name) {
                 command_mode = * (Command_mode*) ( (char*) processor.code + processor.ip); processor.ip += Command_mode_size;
                 argument     = * (Argument*)     ( (char*) processor.code + processor.ip); processor.ip += Argument_size;
 
-                stack_push (&stack, argument); //SHOULD CHECK COMMAND_MODE
+                stack_push (processor.stack, argument); //SHOULD CHECK COMMAND_MODE
 
                 break;
 
@@ -82,22 +80,22 @@ Return_code  processor_run  (const char* source_name, const char* out_name) {
 
             case ADD:
 
-                stack_push (&stack, stack_pop (&stack).value + stack_pop (&stack).value);
+                stack_push (processor.stack, stack_pop (processor.stack).value + stack_pop (processor.stack).value);
                 break;
 
             case SUBSTRACT:
 
-                stack_push (&stack, - stack_pop (&stack).value + stack_pop (&stack).value);
+                stack_push (processor.stack, - stack_pop (processor.stack).value + stack_pop (processor.stack).value);
                 break;
 
             case MULTIPLY:
 
-                stack_push (&stack, stack_pop (&stack).value * stack_pop (&stack).value);
+                stack_push (processor.stack, stack_pop (processor.stack).value * stack_pop (processor.stack).value);
                 break;
 
             case DIVIDE:
 
-                stack_push (&stack, 1 / stack_pop (&stack).value * stack_pop (&stack).value);
+                stack_push (processor.stack, 1 / stack_pop (processor.stack).value * stack_pop (processor.stack).value);
                 break;
 
             case JUMP:
@@ -107,11 +105,15 @@ Return_code  processor_run  (const char* source_name, const char* out_name) {
 
             case DUPLICATE:
 
-                argument = stack_pop (&stack).value;
-                stack_push (&stack, argument);
-                stack_push (&stack, argument);
+                argument = stack_pop (processor.stack).value;
+                stack_push (processor.stack, argument);
+                stack_push (processor.stack, argument);
                 break;
 
+            case CALL:
+
+                processor.ip = (size_t) round ( * (Argument*) ( (char*) processor.code + processor.ip));
+                break;
             default:
 
                 LOG_ERROR (BAD_ARGS);
@@ -125,7 +127,7 @@ Return_code  processor_run  (const char* source_name, const char* out_name) {
 
     fclose      (source);
     fclose      (out);
-    STACK_DTOR (&stack);
+    STACK_DTOR (processor.stack);
 
 
     return SUCCESS;
@@ -192,6 +194,13 @@ Return_code  initialize_processor  (Processor* processor, size_t commands_size, 
     processor->memory = (Argument*) calloc (memory_size, 1);
     if (!processor->memory) { LOG_ERROR (MEMORY_ERR); return MEMORY_ERR; }
 
+    static Stack* stack = nullptr;
+    processor->stack               = STACK_CTOR (stack);
+
+    processor->function_call_stack = STACK_CTOR (stack);
+
 
     return SUCCESS;
 }
+
+

@@ -31,6 +31,7 @@ enum Command_code {
     DIVIDE    = 8,
     JUMP      = 9,
     DUPLICATE = 10,
+    CALL      = 11,
 };
 
 

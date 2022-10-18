@@ -16,19 +16,7 @@
 #include <math.h>
 
 #include "logs.hpp"
-
-
-//-------------------- SETTINGS --------------------
-#define ON_STACK_ERROR_DUMPING
-#define ON_STACK_AFTER_OPERATION_DUMPIN
-#define ON_CANARY_PROTECTION
-#define ON_HASH_PROTECTION
-
-#define  log_file_name "logs.txt"
-#define dump_file_name "dump.txt"
-
-const double stack_resize_coefficient = 2;
-//--------------------------------------------------
+#include "types/Stack.hpp"
 
 
 #define COMMA ,
@@ -70,7 +58,6 @@ const double stack_resize_coefficient = 2;
 
 #ifdef ON_CANARY_PROTECTION
 
-    #define IF_CANARY_PROTECTED(x) x;
     #define CANARY_SIZE sizeof (canary_t)
     #define FIRST_CANARY_VALUE  0xDEADBEEF
     #define SECOND_CANARY_VALUE 0xDEADBEEF
@@ -84,7 +71,6 @@ const double stack_resize_coefficient = 2;
 
 #else
 
-    #define IF_CANARY_PROTECTED(x)  ;
     #define stack_resize(x,y)     _stack_resize       (x, y)
 
     #ifdef ON_HASH_PROTECTION
@@ -97,21 +83,12 @@ const double stack_resize_coefficient = 2;
 
 
 #ifdef ON_HASH_PROTECTION
-    #define IF_HASH_PROTECTED(x) x;
     #define HASH_SIZE sizeof (hash_t)
     #define HASH_MAX  ( (hash_t) -1)
     #define HASH_SALT ( (hash_t) 0xD1E2A3D4B5E6E7F )
 #else
-    #define IF_HASH_PROTECTED(x)  ;
 #endif
 
-
-typedef struct Stack_structure      Stack;
-typedef double                      Element_value;
-typedef struct Element_structure    Element;
-typedef struct Stack_info_structure Stack_info;
-IF_CANARY_PROTECTED (typedef unsigned long long canary_t);
-IF_HASH_PROTECTED   (typedef unsigned long long   hash_t);
 
 typedef unsigned char Stack_state; /*
     1:  &stack   == nullptr
@@ -122,39 +99,6 @@ typedef unsigned char Stack_state; /*
     32: data  canary corrupted
     64: stack has incorrect hash
 */
-
-
-struct  Stack_info_structure  {
-
-    const  char*  name;
-    Stack*        adress;
-    const  char*  birth_file;
-    const  char*  birth_func;
-    int           birth_line;
-};
-
-struct  Stack_structure  {
-
-    IF_CANARY_PROTECTED (canary_t FIRST_CANARY);
-
-
-    Element* elements;
-    size_t   size;
-    size_t   capacity;
-
-    Stack_info debug_info;
-
-    IF_HASH_PROTECTED (hash_t hash;);
-
-
-    IF_CANARY_PROTECTED (canary_t SECOND_CANARY);
-};
-
-struct  Element_structure  {
-
-    Element_value value;
-    bool          poisoned;
-};
 
 
 const size_t   STACK_SIZE             = sizeof (Stack);

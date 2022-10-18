@@ -101,11 +101,13 @@ Return_code disassembler  (const char* source_name, const char* out_name) {
             fprintf (out, "call ");
 
             bytes_read += fread (&argument, 1, Argument_size, source);
-
             fprintf (out, "%lf", argument);
-
-
             break;
+
+            case RETURN:
+
+                fprintf (out, "return");
+                break;
 
             default:
 

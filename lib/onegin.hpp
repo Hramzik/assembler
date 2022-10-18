@@ -10,7 +10,7 @@
 
 
 #include "logs.hpp"
-#include "Text.hpp"
+#include "types/Text.hpp"
 
 
 #define CHAR_SIZE sizeof (char)

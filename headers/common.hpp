@@ -18,21 +18,13 @@
 #include "../lib/Return_code.hpp"
 
 
+#define DEF_CMD(name, code) name = code,
 enum Command_code {
 
-    UNKNOWN   = 0,
-    HALT      = 1,
-    OUT       = 2,
-    PUSH      = 3,
-    POP       = 4,
-    ADD       = 5,
-    SUBSTRACT = 6,
-    MULTIPLY  = 7,
-    DIVIDE    = 8,
-    JUMP      = 9,
-    DUPLICATE = 10,
-    CALL      = 11,
+    UNKNOWN = 0,
+    #include "cmd.h"
 };
+#undef DEF_CMD
 
 
 struct Preamble_struct {

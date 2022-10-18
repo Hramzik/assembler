@@ -11,8 +11,8 @@
 
 #define try(x) {\
 \
-    Return_code return_code = x;\
-    if (return_code) { LOG_ERROR (return_code); return return_code; }\
+    Return_code _return_code_try_special = x;\
+    if (_return_code_try_special) { LOG_ERROR (_return_code_try_special); return _return_code_try_special; }\
 }
 
 

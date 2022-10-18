@@ -112,8 +112,15 @@ Return_code  processor_run  (const char* source_name, const char* out_name) {
 
             case CALL:
 
+                stack_push (processor.function_call_stack, (double) processor.ip);
                 processor.ip = (size_t) round ( * (Argument*) ( (char*) processor.code + processor.ip));
                 break;
+
+            case RETURN:
+
+                processor.ip = (size_t) stack_pop (processor.function_call_stack).value;
+                break;
+
             default:
 
                 LOG_ERROR (BAD_ARGS);
@@ -194,10 +201,14 @@ Return_code  initialize_processor  (Processor* processor, size_t commands_size, 
     processor->memory = (Argument*) calloc (memory_size, 1);
     if (!processor->memory) { LOG_ERROR (MEMORY_ERR); return MEMORY_ERR; }
 
-    static Stack* stack = nullptr;
-    processor->stack               = STACK_CTOR (stack);
+    static Stack stack               = {}; //??
+    static Stack function_call_stack = {}; 
 
-    processor->function_call_stack = STACK_CTOR (stack);
+    processor->stack               = &stack;
+    processor->function_call_stack = &function_call_stack;
+
+    STACK_CTOR (&stack);
+    STACK_CTOR (&function_call_stack);
 
 
     return SUCCESS;

@@ -23,6 +23,7 @@ Command_code  get_command_name  (char* command) {
     if ( !stricmp (command, "jump")      || !stricmp (command, "jmp"))                               { return JUMP; }
     if ( !stricmp (command, "duplicate") || !stricmp (command, "dup"))                               { return DUPLICATE; }
     if ( !stricmp (command, "call"))                                                                 { return CALL; }
+    if ( !stricmp (command, "return")    || !stricmp (command, "ret"))                               { return RETURN; }
 
     return UNKNOWN;
 }
@@ -169,10 +170,15 @@ Return_code  assembler  (const char* source_name, const char* out_name) {
 
             case CALL:
 
-                _asm_case_call (source_lines->lines[line_ind].ptr, label_list, commands, &bytes_filled);
+                _asm_case_call (source_lines->lines[line_ind].ptr, label_list, commands, &bytes_filled, command_ind);
+                break;
+
+            case RETURN:
+
+                binary_array_write (commands, &command_code, Command_code_size, &bytes_filled);
 
 
-                IF_CREATING_LISTING_FILE (listing_write (command_ind, command_code, command, argument));
+                IF_CREATING_LISTING_FILE (listing_write (command_ind, command_code, command));
                 break;
 
             default:
@@ -208,7 +214,7 @@ Return_code  binary_array_write  (void* array, void* filler, size_t size, size_t
 }
 
 
-Return_code  listing_write  (size_t command_ind, Command_code command_code, char* command, Argument argument, Command_mode command_mode) {
+Return_code  listing_write  (size_t command_ind, Command_code command_code, const char* command, Argument argument, Command_mode command_mode) {
 
     static bool  first_function_call_flag = true;
 
@@ -360,6 +366,11 @@ Return_code  _collect_labels  (Label* label_list, const Text* source_lines) {
                 bytes_filled += Argument_size;
                 break;
 
+            case RETURN:
+
+                bytes_filled += Command_code_size;
+                break;
+
             default:
 
                 LOG_ERROR (BAD_ARGS);
@@ -397,8 +408,8 @@ Return_code  _asm_case_jump  (char* source, Label* label_list, void* commands, s
     return SUCCESS;
 }
 
-
-Return_code  _asm_case_call  (char* source, Label* label_list, void* commands, size_t* bytes_filled) {
+//copypast - almost the same as _asm_case_jump - how to fix?
+Return_code  _asm_case_call  (char* source, Label* label_list, void* commands, size_t* bytes_filled, size_t command_ind) {
 
     
     if (!source || !label_list || !commands || !bytes_filled) { LOG_ERROR (BAD_ARGS); return BAD_ARGS; }
@@ -419,6 +430,7 @@ Return_code  _asm_case_call  (char* source, Label* label_list, void* commands, s
     binary_array_write (commands, &argument,     Argument_size,     bytes_filled);
 
 
+    IF_CREATING_LISTING_FILE (listing_write (command_ind, command_code, "call", argument));
     return SUCCESS;
 }
 

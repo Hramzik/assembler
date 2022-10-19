@@ -18,16 +18,26 @@
 #include "../lib/Return_code.hpp"
 
 
-#define DEF_CMD(name, code) name = code,
+#define DEF_CMD(name, code, ...) name = code,
 enum Command_code {
 
-    UNKNOWN = 0,
+    UNKNOWN_CODE = 0,
     #include "cmd.h"
 };
 #undef DEF_CMD
 
 
-struct Preamble_struct {
+#define DEF_REG(name, num) name = num,
+enum Register {
+
+    UNKNOWN_REG = 0,
+    #include "reg.h"
+};
+#undef DEF_REG
+
+
+typedef struct Preamble_struct Preamble;
+struct         Preamble_struct {
 
     char   signature_first_letter;
     char   signature_second_letter;
@@ -37,10 +47,8 @@ struct Preamble_struct {
 };
 
 
-typedef Preamble_struct Preamble;
-
-typedef double Argument;
 typedef char   Command_mode;
+typedef double Argument;
 
 
 const size_t Command_code_size = sizeof (Command_code);

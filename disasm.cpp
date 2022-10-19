@@ -23,7 +23,7 @@ Return_code disassembler  (const char* source_name, const char* out_name) {
     fread (&preamble, 1, Preamble_size, source);
 
 
-    Command_code command_code = UNKNOWN;
+    Command_code command_code = UNKNOWN_CODE;
     Command_mode command_mode = 0;
     Argument     argument     = NAN;
 
@@ -34,7 +34,7 @@ Return_code disassembler  (const char* source_name, const char* out_name) {
 
         switch (command_code) {
 
-            case UNKNOWN:
+            case UNKNOWN_CODE:
 
                 LOG_ERROR (BAD_ARGS);
                 return BAD_ARGS;

@@ -6,12 +6,12 @@
 #include "lib/stack.hpp"
 
 
-Command_code  get_command_name  (char* command) {
+Command_code  _get_command_code  (char* command) {
 
-    if (command == nullptr) { return UNKNOWN; }
+    if (command == nullptr) { return UNKNOWN_CODE; }
 
 
-    if ( !stricmp (command, "unknown"))                                                              { return UNKNOWN; }
+    if ( !stricmp (command, "unknown"))                                                              { return UNKNOWN_CODE; }
     if ( !stricmp (command, "halt")      || !stricmp (command, "hlt"))                               { return HALT; }
     if ( !stricmp (command, "out"))                                                                  { return OUT; }
     if ( !stricmp (command, "push"))                                                                 { return PUSH; }
@@ -25,7 +25,7 @@ Command_code  get_command_name  (char* command) {
     if ( !stricmp (command, "call"))                                                                 { return CALL; }
     if ( !stricmp (command, "return")    || !stricmp (command, "ret"))                               { return RETURN; }
 
-    return UNKNOWN;
+    return UNKNOWN_CODE;
 }
 
 
@@ -48,10 +48,10 @@ Return_code  assembler  (const char* source_name, const char* out_name) {
     try (_collect_labels (label_list, source_lines));
 
 
-    char     command              [MAX_COMMAND_LEN]         = "";
-    Argument command_byte_numbers [source_lines->num_lines] = {};
-    size_t   commands_size             = source_lines->num_lines * (Command_code_size + Argument_size);
-    void*    commands                  = calloc (1, commands_size);
+    char              command [MAX_COMMAND_LEN] = "";
+    size_t            commands_size             = source_lines->num_lines * (Command_code_size + Argument_size);
+    void*             commands                  = calloc (1, commands_size);
+    Argument_and_mode argument_and_mode         = {NAN, 0};
 
     size_t bytes_filled = 0;
     size_t command_ind  = 0;
@@ -59,17 +59,14 @@ Return_code  assembler  (const char* source_name, const char* out_name) {
 
         sscanf (source_lines->lines[line_ind].ptr, "%s", command);
 
-        command_byte_numbers [command_ind] = (double) bytes_filled;
 
-
-        Command_code command_code = get_command_name (command);
-        Command_mode command_mode = 0;
+        Command_code command_code = _get_command_code (command);
         Argument     argument     = NAN;
 
 
         switch (command_code) {
 
-            case UNKNOWN:
+            case UNKNOWN_CODE:
 
                 if (_islabel (command)) {
 
@@ -85,71 +82,74 @@ Return_code  assembler  (const char* source_name, const char* out_name) {
 
             case HALT:
 
-                binary_array_write (commands, &command_code, Command_code_size, &bytes_filled);
+                _binary_array_write (commands, &command_code, Command_code_size, &bytes_filled);
 
 
-                IF_CREATING_LISTING_FILE (listing_write (command_ind, command_code, command));
+                IF_CREATING_LISTING_FILE (_listing_write (command_ind, command_code, command));
                 break;
 
             case OUT:
 
-                binary_array_write (commands, &command_code, Command_code_size, &bytes_filled);
+                _binary_array_write (commands, &command_code, Command_code_size, &bytes_filled);
 
 
-                IF_CREATING_LISTING_FILE (listing_write (command_ind, command_code, command));
+                IF_CREATING_LISTING_FILE (_listing_write (command_ind, command_code, command));
                 break;
 
             case PUSH:
 
-                sscanf (source_lines->lines[line_ind].ptr, "%*s %lf", &argument);
+                argument_and_mode = _parse_args (source_lines->lines[line_ind].ptr);
 
-                command_mode = 0;                     //KOSTIL!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                binary_array_write (commands, &command_code, Command_code_size, &bytes_filled);
-                binary_array_write (commands, &command_mode, Command_mode_size, &bytes_filled);
-                binary_array_write (commands, &argument,     Argument_size,     &bytes_filled);
+                _binary_array_write (commands, &command_code, Command_code_size, &bytes_filled);
+                _binary_array_write (commands, &argument_and_mode.command_mode, Command_mode_size, &bytes_filled);
+                _binary_array_write (commands, &argument_and_mode.argument,     Argument_size,     &bytes_filled);
 
 
-                IF_CREATING_LISTING_FILE (listing_write (command_ind, command_code, command, argument, command_mode));
+                IF_CREATING_LISTING_FILE (_listing_write (command_ind, command_code, command, argument_and_mode.argument, argument_and_mode.command_mode));
                 break;
 
             case POP:
 
-                binary_array_write (commands, &command_code, Command_code_size, &bytes_filled);
+                argument_and_mode = _parse_args (source_lines->lines[line_ind].ptr);
+
+                _binary_array_write (commands, &command_code, Command_code_size, &bytes_filled);
+                _binary_array_write (commands, &argument_and_mode.command_mode, Command_mode_size, &bytes_filled);
+                _binary_array_write (commands, &argument_and_mode.argument,     Argument_size,     &bytes_filled);
 
 
-                IF_CREATING_LISTING_FILE (listing_write (command_ind, command_code, command));
+                IF_CREATING_LISTING_FILE (_listing_write (command_ind, command_code, command, argument_and_mode.argument, argument_and_mode.command_mode));
                 break;
 
             case ADD:
 
-                binary_array_write (commands, &command_code, Command_code_size, &bytes_filled);
+                _binary_array_write (commands, &command_code, Command_code_size, &bytes_filled);
 
 
-                IF_CREATING_LISTING_FILE (listing_write (command_ind, command_code, command));
+                IF_CREATING_LISTING_FILE (_listing_write (command_ind, command_code, command));
                 break;
 
             case SUBSTRACT:
 
-                binary_array_write (commands, &command_code, Command_code_size, &bytes_filled);
+                _binary_array_write (commands, &command_code, Command_code_size, &bytes_filled);
 
 
-                IF_CREATING_LISTING_FILE (listing_write (command_ind, command_code, command));
+                IF_CREATING_LISTING_FILE (_listing_write (command_ind, command_code, command));
                 break;
 
             case MULTIPLY:
 
-                binary_array_write (commands, &command_code, Command_code_size, &bytes_filled);
+                _binary_array_write (commands, &command_code, Command_code_size, &bytes_filled);
 
 
-                IF_CREATING_LISTING_FILE (listing_write (command_ind, command_code, command));
+                IF_CREATING_LISTING_FILE (_listing_write (command_ind, command_code, command));
                 break;
 
             case DIVIDE:
 
-                binary_array_write (commands, &command_code, Command_code_size, &bytes_filled);
+                _binary_array_write (commands, &command_code, Command_code_size, &bytes_filled);
 
 
-                IF_CREATING_LISTING_FILE (listing_write (command_ind, command_code, command));
+                IF_CREATING_LISTING_FILE (_listing_write (command_ind, command_code, command));
                 break;
 
             case JUMP:
@@ -157,15 +157,15 @@ Return_code  assembler  (const char* source_name, const char* out_name) {
                 _asm_case_jump (source_lines->lines[line_ind].ptr, label_list, commands, &bytes_filled);
 
 
-                IF_CREATING_LISTING_FILE (listing_write (command_ind, command_code, command, argument));
+                IF_CREATING_LISTING_FILE (_listing_write (command_ind, command_code, command, argument));
                 break;
 
             case DUPLICATE:
 
-                binary_array_write (commands, &command_code, Command_code_size, &bytes_filled);
+                _binary_array_write (commands, &command_code, Command_code_size, &bytes_filled);
 
 
-                IF_CREATING_LISTING_FILE (listing_write (command_ind, command_code, command));
+                IF_CREATING_LISTING_FILE (_listing_write (command_ind, command_code, command));
                 break;
 
             case CALL:
@@ -175,10 +175,10 @@ Return_code  assembler  (const char* source_name, const char* out_name) {
 
             case RETURN:
 
-                binary_array_write (commands, &command_code, Command_code_size, &bytes_filled);
+                _binary_array_write (commands, &command_code, Command_code_size, &bytes_filled);
 
 
-                IF_CREATING_LISTING_FILE (listing_write (command_ind, command_code, command));
+                IF_CREATING_LISTING_FILE (_listing_write (command_ind, command_code, command));
                 break;
 
             default:
@@ -204,7 +204,7 @@ Return_code  assembler  (const char* source_name, const char* out_name) {
 }
 
 
-Return_code  binary_array_write  (void* array, void* filler, size_t size, size_t* bytes_filled) {
+Return_code  _binary_array_write  (void* array, void* filler, size_t size, size_t* bytes_filled) {
 
     memcpy ( (char*) array + *bytes_filled, filler, size);
     *bytes_filled += size;
@@ -214,7 +214,7 @@ Return_code  binary_array_write  (void* array, void* filler, size_t size, size_t
 }
 
 
-Return_code  listing_write  (size_t command_ind, Command_code command_code, const char* command, Argument argument, Command_mode command_mode) {
+Return_code  _listing_write  (size_t command_ind, Command_code command_code, const char* command, Argument argument, Command_mode command_mode) {
 
     static bool  first_function_call_flag = true;
 
@@ -245,7 +245,7 @@ Return_code  listing_write  (size_t command_ind, Command_code command_code, cons
 }
 
 
-bool  _islabel  (char* str) {
+bool  _islabel  (char* str)  {
 
     if (str == nullptr) { return false; }
 
@@ -279,12 +279,12 @@ Return_code  _collect_labels  (Label* label_list, const Text* source_lines) {
         sscanf (source_lines->lines[line_ind].ptr, "%s", command);
 
 
-        Command_code command_code = get_command_name (command);
+        Command_code command_code = _get_command_code (command);
 
 
         switch (command_code) {
 
-            case UNKNOWN:
+            case UNKNOWN_CODE:
 
                 if (_islabel (command)) {
 
@@ -401,8 +401,8 @@ Return_code  _asm_case_jump  (char* source, Label* label_list, void* commands, s
 
 
     Command_code command_code = JUMP;
-    binary_array_write (commands, &command_code, Command_code_size, bytes_filled);
-    binary_array_write (commands, &argument,     Argument_size,     bytes_filled);
+    _binary_array_write (commands, &command_code, Command_code_size, bytes_filled);
+    _binary_array_write (commands, &argument,     Argument_size,     bytes_filled);
 
 
     return SUCCESS;
@@ -426,16 +426,16 @@ Return_code  _asm_case_call  (char* source, Label* label_list, void* commands, s
 
 
     Command_code command_code = CALL;
-    binary_array_write (commands, &command_code, Command_code_size, bytes_filled);
-    binary_array_write (commands, &argument,     Argument_size,     bytes_filled);
+    _binary_array_write (commands, &command_code, Command_code_size, bytes_filled);
+    _binary_array_write (commands, &argument,     Argument_size,     bytes_filled);
 
 
-    IF_CREATING_LISTING_FILE (listing_write (command_ind, command_code, "call", argument));
+    IF_CREATING_LISTING_FILE (_listing_write (command_ind, command_code, "call", argument));
     return SUCCESS;
 }
 
 
-size_t  _find_label (Label* label_list, char* label_str) {
+size_t  _find_label  (Label* label_list, char* label_str) {
 
     if (!label_list || !label_str) { LOG_ERROR (BAD_ARGS); return 0; }
     size_t i = 0;
@@ -450,3 +450,195 @@ size_t  _find_label (Label* label_list, char* label_str) {
 
     return i;
 }
+
+
+Argument_and_mode  _parse_args  (char* source) {
+
+    assert (source);
+
+
+    char* argument = nullptr;
+    int i = 0;
+    sscanf (source, "%*s %n", &i);
+    
+    argument = source + i;
+
+    if (argument [0] == '(') {
+    
+        return _parse_args_in_brackets (argument);
+    }
+    
+    if (argument [0] == '[') {
+    
+        return _parse_args_in_brackets (argument);
+    }
+
+
+    Register register_argument = _get_register_code (argument);
+    if (register_argument) {
+    
+        return {NAN, (Command_mode) (register_argument << 2)};
+    }
+
+    Argument const_argument = NAN;
+    char should_be_blank [strlen (source)] = "";
+    if (sscanf (argument, "%lf %s", &const_argument, should_be_blank) && isblank (should_be_blank)) {
+
+        return {const_argument, 1};
+    }
+
+
+    LOG_ERROR (BAD_ARGS); return {NAN, 0};
+}
+
+
+#define   DEF_REG(name, ...)\
+    if ( !stricmp (cut_source, #name)) { return name; }
+Register  _get_register_code  (char* source) {
+
+    char cut_source      [strlen (source)] = "";
+    char should_be_blank [1]               = "";
+
+    sscanf (source, "%s %s", cut_source, should_be_blank);
+    if (!isblank (should_be_blank)) {
+    
+        return UNKNOWN_REG;
+    }
+
+    #include "headers/reg.h"
+    return UNKNOWN_REG;
+}
+#undef DEF_REG
+
+
+Argument_and_mode  _parse_args_in_brackets  (char* argument) {
+
+    assert (argument);
+
+
+    bool memory_bite = 0;
+    if (argument [0] == '[') memory_bite = 1;
+
+
+    size_t i = 1;
+    bool found_plus;
+    for ( ; i < strlen (argument); i++) {
+    
+        if (argument [i] == '+') {
+
+            found_plus = true;
+            break;
+        }
+    }
+
+    if (!found_plus) {
+
+        Argument_and_mode parse_solo = _parse_solo_in_brackets (argument);
+        parse_solo.command_mode |= (Command_mode) (memory_bite << 1);
+        return parse_solo;
+    }
+
+
+    char     first_argument   [strlen (argument)] = "";
+    char     should_be_blank1 [1]                 = "";
+
+    char     second_argument  [strlen (argument)] = "";
+    char     should_be_blank2 [1]                 = "";
+
+
+    argument [i] = '\0';
+    sscanf (argument + 1,     "%s",  first_argument);
+    sscanf (argument + i + 1, "%s", second_argument);
+        size_t second_argument_len = strlen(second_argument);
+        if (second_argument [second_argument_len - 1] == ']' || second_argument [second_argument_len - 1] == ')') {
+
+            second_argument [second_argument_len - 1] = '\0';
+        }
+    argument [i] = '+';
+
+
+    Register register_code1 = _get_register_code  (first_argument);
+    Register register_code2 = _get_register_code (second_argument);
+
+
+    Argument first_const  = NAN;
+    Argument second_const = NAN;
+    sscanf ( first_argument, "%lf %s",  &first_const, should_be_blank1);
+    sscanf (second_argument, "%lf %s", &second_const, should_be_blank2);
+    if (!isnan (first_const) && isblank (should_be_blank1) && register_code2) {
+
+        return { first_const,  (Command_mode) (((register_code2 << 2) + 1) | (memory_bite << 1)) };
+    }
+
+    if (!isnan (second_const) && isblank (should_be_blank2) && register_code1) {
+
+        return { second_const, (Command_mode) (((register_code1 << 2) + 1) | (memory_bite << 1)) };
+    }
+
+
+    LOG_ERROR (BAD_ARGS); return {NAN, 0};
+}
+
+
+Argument_and_mode _parse_solo_in_brackets (char* argument) {
+
+    assert (argument);
+
+
+    char  first_bracket = argument [0];
+
+    char second_bracket = 0;
+    switch (first_bracket) {
+
+        case '(':
+            second_bracket = ')';
+            break;
+        case '[':
+            second_bracket = ']';
+            break;
+        default:
+            LOG_ERROR (BAD_ARGS); return {NAN, 0};
+    }
+
+    bool  found_bracket = false;
+    size_t i            = 0;
+    for ( ; i < strlen (argument); i++) {
+    
+        if (argument [i] == second_bracket) {
+        
+            found_bracket = true;
+            break;
+        }
+    }
+
+    char should_be_blank [1] = "";
+    sscanf (argument + i + 1, "%s", should_be_blank);
+    if (!found_bracket || !isblank (should_be_blank)) { LOG_ERROR (BAD_ARGS); return {NAN, 0}; }
+
+
+    char     inner_argument [strlen (argument)] = "";
+
+    argument [i] = '\0';
+    sscanf (argument + 1, "%s", inner_argument);
+    argument [i] = second_bracket;
+
+
+    Register register_code = _get_register_code (inner_argument);
+
+
+    Argument const_arg = NAN;
+    sscanf (inner_argument, "%lf %s",  &const_arg,  should_be_blank);
+    if (!isnan (const_arg) && isblank (should_be_blank)) {
+
+        return { const_arg, 1};
+    }
+
+    if (register_code) {
+
+        return { NAN, (Command_mode) (register_code << 2) };
+    }
+
+
+    LOG_ERROR (BAD_ARGS); return {NAN, 0};
+}
+

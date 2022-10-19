@@ -34,7 +34,7 @@ Return_code  processor_run  (const char* source_name, const char* out_name) {
     if (out == nullptr) { return FILE_ERR; }
 
 
-    Command_code command_code = UNKNOWN;
+    Command_code command_code = UNKNOWN_CODE;
     Command_mode command_mode = 0;
     Argument     argument     = NAN;
 
@@ -49,7 +49,7 @@ Return_code  processor_run  (const char* source_name, const char* out_name) {
 
         switch (command_code) {
 
-            case UNKNOWN:
+            case UNKNOWN_CODE:
 
                 LOG_ERROR (BAD_ARGS);
                 return BAD_ARGS;

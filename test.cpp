@@ -1,17 +1,12 @@
 #include <stdio.h>
 #include <string.h>
+#include "asm.cpp"
 
-void  func  (void* array, void filler, size_t size) {
-
-    memcpy (array, &filler, size);
-
-
-    return;
-}
 
 int main () {
 
-    int a [1];
-    int b = 5;
-    func (a, b, sizeof (int));
+    char a [100] = "";
+    while (scanf ("%s", a)) {
+        printf ("%d\n", get_register_code (a));
+    }
 }

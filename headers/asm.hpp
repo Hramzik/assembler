@@ -39,20 +39,33 @@ struct Label_structure {
     size_t ip;
     char*  name;
 };
-
-
 typedef Label_structure Label;
 
 
-Command_code get_command_name   (char* command);
-Return_code  assembler          (const char* source_name = default_source_file_name, const char* out_name = default_output_file_name);
-Return_code  binary_array_write (void* array, void* filler, size_t size, size_t* bytes_filled);
-Return_code  listing_write      (size_t command_ind, Command_code command_code, const char* command, Argument argument = NAN, Command_mode command_mode = -1);
-bool        _islabel            (char* str);
-Return_code _collect_labels     (Label* label_list, const Text* source_lines);
-Return_code _asm_case_jump      (char* source, Label* label_list, void* commands, size_t* bytes_filled);
-Return_code _asm_case_call      (char* source, Label* label_list, void* commands, size_t* bytes_filled, size_t command_ind);
-size_t      _find_label         (Label* label_list, char* label_str);
+struct Argument_and_mode_structure {
+
+    Argument     argument;
+    Command_mode command_mode;
+};
+typedef struct Argument_and_mode_structure Argument_and_mode;
+
+
+Command_code      _get_command_code       (char* command);
+Return_code       assembler               (const char* source_name = default_source_file_name, const char* out_name = default_output_file_name);
+Return_code       _binary_array_write     (void* array, void* filler, size_t size, size_t* bytes_filled);
+Return_code       _listing_write          (size_t command_ind, Command_code command_code, const char* command, Argument argument = NAN, Command_mode command_mode = -1);
+bool              _islabel                (char* str);
+Return_code       _collect_labels         (Label* label_list, const Text* source_lines);
+Return_code       _asm_case_jump          (char* source, Label* label_list, void* commands, size_t* bytes_filled);
+Return_code       _asm_case_call          (char* source, Label* label_list, void* commands, size_t* bytes_filled, size_t command_ind);
+size_t            _find_label             (Label* label_list, char* label_str);
+Argument_and_mode _parse_args             (char* source);
+Register          _get_register_code      (char* source);
+Argument_and_mode _parse_args_in_brackets (char* argument);
+Argument_and_mode _parse_solo_in_brackets (char* argument);
+
+
+
 
 
 

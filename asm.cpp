@@ -63,6 +63,43 @@ Return_code  assembler  (const char* source_name, const char* out_name) {
         Command_code command_code = _get_command_code (command);
         Argument     argument     = NAN;
 
+        #define DEF_CMD(name, code, args, mode, asm, ...) \
+\
+            case name:\
+\
+                if (!isdash (#asm)) { asm; break; }\
+\
+                if (mode) {\
+\
+                    argument_and_mode = _parse_args (source_lines->lines[line_ind].ptr);\
+\
+                    _binary_array_write (commands, &command_code, Command_code_size, &bytes_filled);\
+                    _binary_array_write (commands, &argument_and_mode.command_mode, Command_mode_size, &bytes_filled);\
+                    _binary_array_write (commands, &argument_and_mode.argument,     Argument_size,     &bytes_filled);\
+\
+\
+                    IF_CREATING_LISTING_FILE (_listing_write (command_ind, command_code, command, argument_and_mode.argument, argument_and_mode.command_mode));\
+                    break;\
+                }\
+\
+                if (args) {\
+\
+                    Argument argument = NAN;\
+                    char* should_be_blank = "";\
+\
+                    sscanf (source_lines->lines[line_ind].ptr, "%*s %lf %s", argument, should_be_blank);\
+                    if (!isblank (should_be_blank)) { LOG_MESSAGE ("unexpected simbols after argument at %s", source_lines->lines[line_ind].ptr); return BAD_ARGS; }\
+\
+                    _binary_array_write (commands, &command_code, Command_code_size, &bytes_filled);\
+                    _binary_array_write (commands, &argument,     Argument_size,     &bytes_filled);\
+                    IF_CREATING_LISTING_FILE (_listing_write (command_ind, command_code, command, argument));\
+                    break;\
+                }\
+\
+                _binary_array_write (commands, &command_code, Command_code_size, &bytes_filled);\
+                IF_CREATING_LISTING_FILE (_listing_write (command_ind, command_code, command));\
+                break;\
+
 
         switch (command_code) {
 
@@ -186,6 +223,7 @@ Return_code  assembler  (const char* source_name, const char* out_name) {
                 LOG_ERROR (BAD_ARGS);
                 return BAD_ARGS;
         }
+        #undef DEF_CMD
 
         command_ind++;
     }

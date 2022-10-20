@@ -22,8 +22,13 @@ Return_code  processor_run  (const char* source_name, const char* out_name) {
     Return_code return_code = greetings (preamble.version, preamble.signature_first_letter, preamble.signature_second_letter);
     if (return_code) { LOG_ERROR (return_code); return return_code; }
 
-
-    Processor   processor   = {0, nullptr, NAN, NAN, NAN, NAN, nullptr, nullptr, nullptr};
+    #define DEF_REG(name, ...) .name = NAN, 
+    Processor processor = {
+        .ip = 0, .code = nullptr,
+        #include "headers/reg.h"
+        .memory = nullptr, .memory_capacity = 0, .stack = nullptr, .function_call_stack = nullptr
+    };
+    #undef DEF_REG
     try (initialize_processor (&processor, preamble.out_file_size));
 
 
@@ -68,15 +73,89 @@ Return_code  processor_run  (const char* source_name, const char* out_name) {
 
                 command_mode = * (Command_mode*) ( (char*) processor.code + processor.ip); processor.ip += Command_mode_size;
                 argument     = * (Argument*)     ( (char*) processor.code + processor.ip); processor.ip += Argument_size;
+                if (isnan (argument)) { argument = 0; }
 
-                stack_push (processor.stack, argument); //SHOULD CHECK COMMAND_MODE
+
+                if (command_mode >> 2) {
+
+                    Argument* register_adress = _get_register_adress (&processor, command_mode >> 2);
+                    if (!register_adress) {
+
+                        LOG_ERROR (BAD_ARGS);
+                        return BAD_ARGS;
+                    }
+
+                    if (isnan (*register_adress)) {
+
+                        LOG_MESSAGE ("register is filled with poison!");
+                        return BAD_ARGS;
+                    }
+
+                    argument += *register_adress;;
+                }
+
+                if (command_mode & 2) {
+
+                    if ( round (argument) < 0 || (size_t) round (argument) >= processor.memory_capacity) {
+
+                        LOG_MESSAGE ("segmentation fault");
+                        LOG_ERROR (BAD_ARGS);
+                        return BAD_ARGS;
+                    }
+
+                    argument = processor.memory [ (size_t) argument];
+                    if (isnan (argument)) {
+
+                        LOG_MESSAGE ("memory cell is filled with poison!"); //dump
+                        return BAD_ARGS;
+                    }
+                }
+
+                stack_push (processor.stack, argument);
 
                 break;
 
-            case POP:
+            case POP: {
 
-                //TOO SOON TO REALIZE
+                command_mode = * (Command_mode*) ( (char*) processor.code + processor.ip); processor.ip += Command_mode_size;
+                argument     = * (Argument*)     ( (char*) processor.code + processor.ip); processor.ip += Argument_size;
+                Argument* write_target = nullptr;
+
+                if (!(command_mode & 2) && !isnan (argument)) { LOG_MESSAGE ("can't write into the constant"); return BAD_ARGS; }
+                if (isnan (argument)) { argument = 0; }
+
+
+                if (command_mode >> 2) {
+
+                    write_target = _get_register_adress (&processor, command_mode >> 2);
+                    if (!write_target) {
+
+                        LOG_ERROR (BAD_ARGS);
+                        return BAD_ARGS;
+                    }
+                }
+
+                if (command_mode & 2) {
+
+                    if (write_target) { argument += *write_target; }
+                    if ( round (argument) < 0 || (size_t) round (argument) >= processor.memory_capacity) {
+
+                        LOG_MESSAGE ("segmentation fault");
+                        LOG_ERROR (BAD_ARGS);
+                        return BAD_ARGS;
+                    }
+
+                    write_target = &processor.memory [ (size_t) argument];
+                }
+
+
+                Return_code pop_return_code = BAD_ARGS;
+                *write_target = stack_pop (processor.stack, &pop_return_code).value;
+                if (pop_return_code) { LOG_ERROR (pop_return_code); return pop_return_code; }
+
+
                 break;
+            }
 
             case ADD:
 
@@ -183,32 +262,65 @@ bool  isinteractive (int num_str, char** string_array) {
 }
 
 
-Return_code  initialize_processor  (Processor* processor, size_t commands_size, size_t memory_size) {
+#define DEF_REG(name, ...) processor->name = NAN;
+Return_code  initialize_processor  (Processor* processor, size_t commands_size, size_t memory_capacity) {
 
     if (!processor) { LOG_ERROR (BAD_ARGS); return BAD_ARGS; }
 
 
     processor->ip = 0;
 
+
     processor->code = calloc (commands_size, 1);
     if (!processor->code) { LOG_ERROR (MEMORY_ERR); return MEMORY_ERR; }
 
-    processor->RAX = NAN;
-    processor->RBX = NAN;
-    processor->RCX = NAN;
-    processor->RDX = NAN;
 
-    processor->memory = (Argument*) calloc (memory_size, 1);
+    #include "headers/reg.h"
+
+
+    processor->memory = (Argument*) calloc (memory_capacity * Argument_size, 1);
     if (!processor->memory) { LOG_ERROR (MEMORY_ERR); return MEMORY_ERR; }
+    processor->memory_capacity = memory_capacity;
+    _poison_memory (processor);
+
 
     static Stack stack               = {}; //??
     static Stack function_call_stack = {}; 
 
+    try (STACK_CTOR               (&stack));
+    try (STACK_CTOR (&function_call_stack));
+
     processor->stack               = &stack;
     processor->function_call_stack = &function_call_stack;
 
-    STACK_CTOR (&stack);
-    STACK_CTOR (&function_call_stack);
+
+    return SUCCESS;
+}
+#undef DEF_REG
+
+
+#define DEF_REG(name, num) case num: return &processor->name;
+Argument*  _get_register_adress  (Processor* processor, Argument _reg_num) {
+
+    size_t reg_num = (size_t) round (_reg_num);
+    switch (reg_num) {
+
+        #include "headers/reg.h"
+        default: return nullptr;
+    }
+}
+#undef DEF_REG
+
+
+Return_code  _poison_memory  (Processor* processor) {
+
+    if (!processor) { LOG_ERROR (BAD_ARGS); return BAD_ARGS; }
+
+
+    for (size_t i = 0; i < processor->memory_capacity; i++) {
+    
+        processor->memory [i] = NAN;
+    }
 
 
     return SUCCESS;

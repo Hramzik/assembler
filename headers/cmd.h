@@ -16,11 +16,11 @@ DEF_CMD (DUPLICATE, 10,   0,   0,   -,   -)
 DEF_CMD (CALL,      11,   1,   0,
     { _asm_case_call (source_lines->lines[line_ind].ptr, label_list, commands, &bytes_filled, command_ind); },
     )
-DEF_CMD (RETURN,    12,   0,   0,   -,   -)/*
+DEF_CMD (RETURN,    12,   0,   0,   -,   -)
 DEF_CMD (JE,        13,   1,   0,   -,   -)
-DEF_CMD (JNE,       13,   1,   0,   -,   -)
-DEF_CMD (JB,        13,   1,   0,   -,   -)
-DEF_CMD (JBE,       13,   1,   0,   -,   -)
-DEF_CMD (JA,        13,   1,   0,   -,   -)
-DEF_CMD (JAE,       13,   1,   0,   -,   -)*/
+DEF_CMD (JNE,       14,   1,   0,   -,   -)
+DEF_CMD (JB,        15,   1,   0,   -,   -)
+DEF_CMD (JBE,       16,   1,   0,   -,   -)
+DEF_CMD (JA,        17,   1,   0,   -,   -)
+DEF_CMD (JAE,       18,   1,   0,   -,   -)
 

@@ -45,6 +45,7 @@ Return_code print_lines_spaceless  (Text* ptrtext);
 Return_code fprint_lines           (Text* ptrtext, const char* file_name, const char* file_mode);
 Return_code fprint_lines_spaceless (Text* ptrtext, const char* file_name, const char* file_mode);
 bool        isblank                (char* str);
+bool        isdash                 (char* srt);
 
 Return_code cleanmemory            (Text* ptrtext);
 
@@ -75,13 +76,13 @@ Return_code  readfile_into_Text  (const char* file_name, Text* ptrtext) {
 
     if (file_name == nullptr) {
         LOG_ERROR   (BAD_ARGS);
-        log_message ("pointer to file_name is leading nowhere\n");
+        LOG_MESSAGE ("pointer to file_name is leading nowhere\n");
         return      BAD_ARGS;
     }
 
     if (ptrtext == nullptr) {
         LOG_ERROR   (BAD_ARGS);
-        log_message ("pointer to text is leading nowhere\n");
+        LOG_MESSAGE ("pointer to text is leading nowhere\n");
         return      BAD_ARGS;
     }
 
@@ -131,7 +132,7 @@ Text*  initialize_text  (const char* file_name) {
 
     if (file_name == nullptr) {
         LOG_ERROR   (BAD_ARGS);
-        log_message ("pointer to file_name is leading nowhere\n");
+        LOG_MESSAGE ("pointer to file_name is leading nowhere\n");
         return      nullptr;
     }
 
@@ -141,13 +142,13 @@ Text*  initialize_text  (const char* file_name) {
 
     Return_code return_code = readfile_into_Text (file_name, &text);
     if (return_code) {
-        log_message ("error while reading file into text structure\n");
+        LOG_MESSAGE ("error while reading file into text structure\n");
         return      nullptr;
     }
 
 
     text.num_lines     =       get_num_rows (text.buffer);
-    if (text.num_lines == 0) { log_message ("buffer error occured\n"); return nullptr; }
+    if (text.num_lines == 0) { LOG_MESSAGE ("buffer error occured\n"); return nullptr; }
 
 
     text.lines     =                     (Line*) calloc (text.num_lines + 1, LINE_SIZE);
@@ -170,8 +171,8 @@ Text*  initialize_text  (const char* file_name) {
 
 Return_code  sort_lines_from_start  (Text* ptrtext) {
 
-    if (ptrtext        == nullptr) { LOG_ERROR (BAD_ARGS); log_message ("pointer to text is leading nowhere!\n"); return BAD_ARGS; }
-    if (ptrtext->lines == nullptr) { LOG_ERROR (BAD_ARGS); log_message ("can't sort uninitialized lines!\n");     return BAD_ARGS; }
+    if (ptrtext        == nullptr) { LOG_ERROR (BAD_ARGS); LOG_MESSAGE ("pointer to text is leading nowhere!\n"); return BAD_ARGS; }
+    if (ptrtext->lines == nullptr) { LOG_ERROR (BAD_ARGS); LOG_MESSAGE ("can't sort uninitialized lines!\n");     return BAD_ARGS; }
 
 
     _mysort ((*ptrtext).lines, (*ptrtext).num_lines, LINE_SIZE, _l_linecmp);
@@ -181,8 +182,8 @@ Return_code  sort_lines_from_start  (Text* ptrtext) {
 
 Return_code  sort_lines_from_end  (Text* ptrtext) {
 
-    if (ptrtext        == nullptr) { LOG_ERROR (BAD_ARGS); log_message ("pointer to text is leading nowhere!\n"); return BAD_ARGS; }
-    if (ptrtext->lines == nullptr) { LOG_ERROR (BAD_ARGS); log_message ("can't sort uninitialized lines!\n");     return BAD_ARGS; }
+    if (ptrtext        == nullptr) { LOG_ERROR (BAD_ARGS); LOG_MESSAGE ("pointer to text is leading nowhere!\n"); return BAD_ARGS; }
+    if (ptrtext->lines == nullptr) { LOG_ERROR (BAD_ARGS); LOG_MESSAGE ("can't sort uninitialized lines!\n");     return BAD_ARGS; }
 
 
     qsort ((*ptrtext).lines, (*ptrtext).num_lines, LINE_SIZE, _r_linecmp);
@@ -192,8 +193,8 @@ Return_code  sort_lines_from_end  (Text* ptrtext) {
 
 Return_code  sort_lines_original  (Text* ptrtext) {
 
-    if (ptrtext        == nullptr) { LOG_ERROR (BAD_ARGS); log_message ("pointer to text is leading nowhere!\n"); return BAD_ARGS; }
-    if (ptrtext->lines == nullptr) { LOG_ERROR (BAD_ARGS); log_message ("can't sort uninitialized lines!\n");     return BAD_ARGS; }
+    if (ptrtext        == nullptr) { LOG_ERROR (BAD_ARGS); LOG_MESSAGE ("pointer to text is leading nowhere!\n"); return BAD_ARGS; }
+    if (ptrtext->lines == nullptr) { LOG_ERROR (BAD_ARGS); LOG_MESSAGE ("can't sort uninitialized lines!\n");     return BAD_ARGS; }
 
 
     qsort ((*ptrtext).lines, (*ptrtext).num_lines, LINE_SIZE, _original_linecmp);
@@ -249,7 +250,7 @@ int  _original_linecmp  (const void* first, const void* second) {
 
 Return_code  print_lines  (Text* ptrtext) {
 
-    if (ptrtext == nullptr) { LOG_ERROR (BAD_ARGS); log_message ("pointer to text is leading nowhere!\n"); return BAD_ARGS; }
+    if (ptrtext == nullptr) { LOG_ERROR (BAD_ARGS); LOG_MESSAGE ("pointer to text is leading nowhere!\n"); return BAD_ARGS; }
 
 
     setvbuf (stdout, nullptr, _IOFBF, (*ptrtext).buffer_len);
@@ -269,7 +270,7 @@ Return_code  print_lines  (Text* ptrtext) {
 
 Return_code  print_lines_spaceless  (Text* ptrtext) {
 
-    if (ptrtext == nullptr) { LOG_ERROR (BAD_ARGS); log_message ("pointer to text is leading nowhere!\n"); return BAD_ARGS; }
+    if (ptrtext == nullptr) { LOG_ERROR (BAD_ARGS); LOG_MESSAGE ("pointer to text is leading nowhere!\n"); return BAD_ARGS; }
 
 
     setvbuf (stdout, nullptr, _IOFBF, (*ptrtext).buffer_len);
@@ -471,7 +472,7 @@ char*  slash_n_to_slash_zero  (char* str) {
 
 size_t  get_num_rows  (char* str) {
 
-    if (str == nullptr) { LOG_ERROR (BAD_ARGS); log_message ("pointer to string is leading nowhere!\n"); return 0; }
+    if (str == nullptr) { LOG_ERROR (BAD_ARGS); LOG_MESSAGE ("pointer to string is leading nowhere!\n"); return 0; }
 
 
     size_t num_rows = 1;
@@ -496,7 +497,7 @@ size_t  get_num_rows  (char* str) {
 
 Return_code  initialize_lines  (Text* ptrtext) {
 
-    if (ptrtext == nullptr) { LOG_ERROR (BAD_ARGS); log_message ("pointer to text is leading nowhere!\n"); return BAD_ARGS; }
+    if (ptrtext == nullptr) { LOG_ERROR (BAD_ARGS); LOG_MESSAGE ("pointer to text is leading nowhere!\n"); return BAD_ARGS; }
 
 
     bool   addnext  = true;
@@ -524,7 +525,7 @@ Return_code  initialize_lines  (Text* ptrtext) {
 
 Return_code  cleanmemory  (Text* ptrtext) {
 
-    if (ptrtext == nullptr) { LOG_ERROR (BAD_ARGS); log_message ("pointer to text is leading nowhere!\n"); return BAD_ARGS; }
+    if (ptrtext == nullptr) { LOG_ERROR (BAD_ARGS); LOG_MESSAGE ("pointer to text is leading nowhere!\n"); return BAD_ARGS; }
 
 
     free ((*ptrtext).lines);
@@ -647,15 +648,31 @@ bool  isblank  (char* str) {
     for (size_t i = 0; str[i] != '\0'; i++) {
 
         if (isalpha (str[i])) return false;
-
-        i++;
     }
 
     return true;
 }
 
 
+bool  isdash  (char* srt) {
 
+    bool dash_seen = false;
+
+
+    for (size_t i = 0; str[i] != '\0'; i++) {
+
+        switch (str[i]) {
+
+            case ' ':  break;
+            case '\n': break;
+            case '\t': break;
+            case '-':  if (!dash_seen) { dash_seen = true; break; } else { return false; }
+            default:   return false;
+        }
+    }
+
+    return true;
+}
 
 
 

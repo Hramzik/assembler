@@ -17,14 +17,15 @@
 
 
 #define log_file_name "logs.txt"
-#define LOG_ERROR(code) _log_error (code, __FILE__, __PRETTY_FUNCTION__, __LINE__)
+#define LOG_ERROR(code)      _log_error   (code,    __FILE__, __PRETTY_FUNCTION__, __LINE__)
+#define LOG_MESSAGE(message) _log_message (message, __FILE__, __PRETTY_FUNCTION__, __LINE__)
 
 
-static const size_t time_str_len = 40;
-
+static const size_t time_str_len  = 40;
+static const bool   save_old_logs = false;
 
 void       _log_error              (Return_code, const char*, const char*, int);
-void        log_message            (const char* message);
+void       _log_message            (const char* message, const char* file, const char* func, const int line);
 void        log_start              (void);
 void        log_end                (void);
 void        print_log_time         (void);
@@ -48,14 +49,14 @@ char*       tm_to_str              (struct tm* time_structure);
 
 
 
-void  log_message  (const char* message) {
+void  _log_message  (const char* message, const char* file, const char* func, const int line) {
 
     FILE* log_file = fopen (log_file_name, "a");
     setvbuf                (log_file, NULL, _IONBF, 0);
 
 
     print_log_time();
-    fprintf (log_file, "%s\n", message);
+    fprintf (log_file, "%s, %s (line %d): %s\n", file, func, line, message);
 
 
     fclose (log_file);
@@ -71,7 +72,7 @@ char*  tm_to_str  (struct tm* time_structure) {
     for (size_t i = 0; i < time_str_len; i++) time_str[i] = '\0';
 
 
-    strftime (  time_str, time_str_len, "%d.%m.%Y %H:%M:%S: ", time_structure);
+    strftime (  time_str, time_str_len, "%d.%m.%Y %H:%M:%S| ", time_structure);
 
 
     return time_str;

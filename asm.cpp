@@ -6,27 +6,21 @@
 #include "lib/stack.hpp"
 
 
+#define DEF_CMD(name, ...)\
+    if ( !stricmp (command, #name)) { return name; }
+
+
 Command_code  _get_command_code  (char* command) {
 
     if (command == nullptr) { return UNKNOWN_CODE; }
 
 
-    if ( !stricmp (command, "unknown"))                                                              { return UNKNOWN_CODE; }
-    if ( !stricmp (command, "halt")      || !stricmp (command, "hlt"))                               { return HALT; }
-    if ( !stricmp (command, "out"))                                                                  { return OUT; }
-    if ( !stricmp (command, "push"))                                                                 { return PUSH; }
-    if ( !stricmp (command, "pop"))                                                                  { return POP; }
-    if ( !stricmp (command, "add"))                                                                  { return ADD; }
-    if ( !stricmp (command, "substract") || !stricmp (command, "sub"))                               { return SUBSTRACT; }
-    if ( !stricmp (command, "multiply")  || !stricmp (command, "mult") || !stricmp (command, "mul")) { return MULTIPLY; }
-    if ( !stricmp (command, "divide")    || !stricmp (command, "div"))                               { return DIVIDE; }
-    if ( !stricmp (command, "jump")      || !stricmp (command, "jmp"))                               { return JUMP; }
-    if ( !stricmp (command, "duplicate") || !stricmp (command, "dup"))                               { return DUPLICATE; }
-    if ( !stricmp (command, "call"))                                                                 { return CALL; }
-    if ( !stricmp (command, "return")    || !stricmp (command, "ret"))                               { return RETURN; }
+    #include "headers/cmd.h"
+
 
     return UNKNOWN_CODE;
 }
+#undef DEF_CMD
 
 
 Return_code  assembler  (const char* source_name, const char* out_name) {
@@ -57,17 +51,18 @@ Return_code  assembler  (const char* source_name, const char* out_name) {
     size_t command_ind  = 0;
     for (size_t line_ind = 0; line_ind < source_lines->num_lines; line_ind++) {
 
+        if (isblank (source_lines->lines[line_ind].ptr)) { continue; }
+
         sscanf (source_lines->lines[line_ind].ptr, "%s", command);
 
-
         Command_code command_code = _get_command_code (command);
-        Argument     argument     = NAN;
+
 
         #define DEF_CMD(name, code, args, mode, asm, ...) \
 \
             case name:\
 \
-                if (!isdash (#asm)) { asm; break; }\
+                if (!is_no_commands (#asm)) { asm; }\
 \
                 if (mode) {\
 \
@@ -78,27 +73,30 @@ Return_code  assembler  (const char* source_name, const char* out_name) {
                     _binary_array_write (commands, &argument_and_mode.argument,     Argument_size,     &bytes_filled);\
 \
 \
-                    IF_CREATING_LISTING_FILE (_listing_write (command_ind, command_code, command, argument_and_mode.argument, argument_and_mode.command_mode));\
+                    IF_CREATING_LISTING_FILE (_listing_write (bytes_filled - Command_code_size - Command_mode_size - Argument_size, command_code, command, argument_and_mode.argument, argument_and_mode.command_mode));\
                     break;\
                 }\
 \
                 if (args) {\
 \
                     Argument argument = NAN;\
-                    char* should_be_blank = "";\
+                    char should_be_blank [1] = "";\
 \
-                    sscanf (source_lines->lines[line_ind].ptr, "%*s %lf %s", argument, should_be_blank);\
-                    if (!isblank (should_be_blank)) { LOG_MESSAGE ("unexpected simbols after argument at %s", source_lines->lines[line_ind].ptr); return BAD_ARGS; }\
+                    sscanf (source_lines->lines[line_ind].ptr, "%*s %lf %s", &argument, should_be_blank);\
+                    if (!isblank (should_be_blank)) {\
+                        LOG_MESSAGE ("unexpected simbols after argument in following code: ");\
+                        LOG_MESSAGE (source_lines->lines[line_ind].ptr);\
+                        return BAD_ARGS; }\
 \
                     _binary_array_write (commands, &command_code, Command_code_size, &bytes_filled);\
                     _binary_array_write (commands, &argument,     Argument_size,     &bytes_filled);\
-                    IF_CREATING_LISTING_FILE (_listing_write (command_ind, command_code, command, argument));\
+                    IF_CREATING_LISTING_FILE (_listing_write (bytes_filled - Command_code_size - Argument_size, command_code, command, argument));\
                     break;\
                 }\
 \
                 _binary_array_write (commands, &command_code, Command_code_size, &bytes_filled);\
-                IF_CREATING_LISTING_FILE (_listing_write (command_ind, command_code, command));\
-                break;\
+                IF_CREATING_LISTING_FILE (_listing_write (bytes_filled - Command_code_size, command_code, command));\
+                break;
 
 
         switch (command_code) {
@@ -117,106 +115,7 @@ Return_code  assembler  (const char* source_name, const char* out_name) {
                     return BAD_ARGS;
                 }
 
-            case HALT:
-
-                _binary_array_write (commands, &command_code, Command_code_size, &bytes_filled);
-
-
-                IF_CREATING_LISTING_FILE (_listing_write (command_ind, command_code, command));
-                break;
-
-            case OUT:
-
-                _binary_array_write (commands, &command_code, Command_code_size, &bytes_filled);
-
-
-                IF_CREATING_LISTING_FILE (_listing_write (command_ind, command_code, command));
-                break;
-
-            case PUSH:
-
-                argument_and_mode = _parse_args (source_lines->lines[line_ind].ptr);
-
-                _binary_array_write (commands, &command_code, Command_code_size, &bytes_filled);
-                _binary_array_write (commands, &argument_and_mode.command_mode, Command_mode_size, &bytes_filled);
-                _binary_array_write (commands, &argument_and_mode.argument,     Argument_size,     &bytes_filled);
-
-
-                IF_CREATING_LISTING_FILE (_listing_write (command_ind, command_code, command, argument_and_mode.argument, argument_and_mode.command_mode));
-                break;
-
-            case POP:
-
-                argument_and_mode = _parse_args (source_lines->lines[line_ind].ptr);
-
-                _binary_array_write (commands, &command_code, Command_code_size, &bytes_filled);
-                _binary_array_write (commands, &argument_and_mode.command_mode, Command_mode_size, &bytes_filled);
-                _binary_array_write (commands, &argument_and_mode.argument,     Argument_size,     &bytes_filled);
-
-
-                IF_CREATING_LISTING_FILE (_listing_write (command_ind, command_code, command, argument_and_mode.argument, argument_and_mode.command_mode));
-                break;
-
-            case ADD:
-
-                _binary_array_write (commands, &command_code, Command_code_size, &bytes_filled);
-
-
-                IF_CREATING_LISTING_FILE (_listing_write (command_ind, command_code, command));
-                break;
-
-            case SUBSTRACT:
-
-                _binary_array_write (commands, &command_code, Command_code_size, &bytes_filled);
-
-
-                IF_CREATING_LISTING_FILE (_listing_write (command_ind, command_code, command));
-                break;
-
-            case MULTIPLY:
-
-                _binary_array_write (commands, &command_code, Command_code_size, &bytes_filled);
-
-
-                IF_CREATING_LISTING_FILE (_listing_write (command_ind, command_code, command));
-                break;
-
-            case DIVIDE:
-
-                _binary_array_write (commands, &command_code, Command_code_size, &bytes_filled);
-
-
-                IF_CREATING_LISTING_FILE (_listing_write (command_ind, command_code, command));
-                break;
-
-            case JUMP:
-
-                _asm_case_jump (source_lines->lines[line_ind].ptr, label_list, commands, &bytes_filled);
-
-
-                IF_CREATING_LISTING_FILE (_listing_write (command_ind, command_code, command, argument));
-                break;
-
-            case DUPLICATE:
-
-                _binary_array_write (commands, &command_code, Command_code_size, &bytes_filled);
-
-
-                IF_CREATING_LISTING_FILE (_listing_write (command_ind, command_code, command));
-                break;
-
-            case CALL:
-
-                _asm_case_call (source_lines->lines[line_ind].ptr, label_list, commands, &bytes_filled, command_ind);
-                break;
-
-            case RETURN:
-
-                _binary_array_write (commands, &command_code, Command_code_size, &bytes_filled);
-
-
-                IF_CREATING_LISTING_FILE (_listing_write (command_ind, command_code, command));
-                break;
+            #include "headers/cmd.h"
 
             default:
 
@@ -252,7 +151,7 @@ Return_code  _binary_array_write  (void* array, void* filler, size_t size, size_
 }
 
 
-Return_code  _listing_write  (size_t command_ind, Command_code command_code, const char* command, Argument argument, Command_mode command_mode) {
+Return_code  _listing_write  (size_t bytes_filled, Command_code command_code, const char* command, Argument argument, Command_mode command_mode) {
 
     static bool  first_function_call_flag = true;
 
@@ -261,10 +160,10 @@ Return_code  _listing_write  (size_t command_ind, Command_code command_code, con
     else                          { listing_file = fopen (default_listing_file_name, "a"); }
 
 
-    if (command_ind == 0) {fprintf (listing_file, "num      code    mode    args    name    args\n    -----------------------------------------\n"); }
+    if (bytes_filled == 0) {fprintf (listing_file, "num      code    mode    args    name    args\n    -----------------------------------------\n"); }
     else { fprintf (listing_file, "\n    |\n"); }
 
-    fprintf (listing_file, "%04zd|    %04X", command_ind, command_code);
+    fprintf (listing_file, "%04zd|    %04d", bytes_filled, command_code);
 
     if (command_mode != -1) { fprintf (listing_file, "    %04X",   command_mode); }
     else                    { fprintf (listing_file, "        "); }
@@ -287,13 +186,13 @@ bool  _islabel  (char* str)  {
 
     if (str == nullptr) { return false; }
 
-    if (isdigit (str[0]) && str [strlen (str) - 1] != ':') { return false; }
+    if (str [strlen (str) - 1] == ':') { return true; }
 
     /*for (size_t i = 0; str [i] != '\0'; i++) {
 
         if (!isalpha (str [i]) && !isdigit (str [i])) { return false; }
     }*/
-    return true;
+    return false;
 }
 
 
@@ -315,9 +214,19 @@ Return_code  _collect_labels  (Label* label_list, const Text* source_lines) {
     for (size_t line_ind = 0; line_ind < source_lines->num_lines; line_ind++) {
 
         sscanf (source_lines->lines[line_ind].ptr, "%s", command);
-
+        if (isblank (source_lines->lines[line_ind].ptr)) { continue; }
 
         Command_code command_code = _get_command_code (command);
+
+
+
+
+        #define DEF_CMD(name, code, args, mode, asm, ...) \
+            case name:\
+                bytes_filled += Command_code_size;\
+                if (args) { bytes_filled += Argument_size; }\
+                if (mode) { bytes_filled += Command_mode_size; }\
+                break;
 
 
         switch (command_code) {
@@ -332,7 +241,7 @@ Return_code  _collect_labels  (Label* label_list, const Text* source_lines) {
 
 
                     label_list [label_ind] = { command_ind, bytes_filled, nullptr };
-                    label_list [label_ind].name = (char*) calloc (strlen (command), 1);
+                    label_list [label_ind].name = (char*) calloc (strlen (command) + 1, 1);
                     strcpy (label_list [label_ind].name, command);
                     command_ind--;
                     label_ind  ++;
@@ -345,75 +254,14 @@ Return_code  _collect_labels  (Label* label_list, const Text* source_lines) {
                     return BAD_ARGS;
                 }
 
-            case HALT:
-
-                bytes_filled += Command_code_size;
-                break;
-
-            case OUT:
-
-                bytes_filled += Command_code_size;
-                break;
-
-            case PUSH:
-
-                bytes_filled += Command_code_size;
-                bytes_filled += Command_mode_size;
-                bytes_filled += Argument_size;
-                break;
-
-            case POP:
-
-                bytes_filled += Command_code_size;
-                break;
-
-            case ADD:
-
-                bytes_filled += Command_code_size;
-                break;
-
-            case SUBSTRACT:
-
-                bytes_filled += Command_code_size;
-                break;
-
-            case MULTIPLY:
-
-                bytes_filled += Command_code_size;
-                break;
-
-            case DIVIDE:
-
-                bytes_filled += Command_code_size;
-                break;
-
-            case JUMP:
-
-                bytes_filled += Command_code_size;
-                bytes_filled += Argument_size;
-                break;
-
-            case DUPLICATE:
-
-                bytes_filled += Command_code_size;
-                break;
-
-            case CALL:
-
-                bytes_filled += Command_code_size;
-                bytes_filled += Argument_size;
-                break;
-
-            case RETURN:
-
-                bytes_filled += Command_code_size;
-                break;
+            #include "headers/cmd.h"
 
             default:
 
                 LOG_ERROR (BAD_ARGS);
                 return BAD_ARGS;
         }
+        #undef DEF_CMD
 
         command_ind++;
     }
@@ -423,31 +271,7 @@ Return_code  _collect_labels  (Label* label_list, const Text* source_lines) {
 }
 
 
-Return_code  _asm_case_jump  (char* source, Label* label_list, void* commands, size_t* bytes_filled) {
-
-    if (!source || !label_list || !commands || !bytes_filled) { LOG_ERROR (BAD_ARGS); return BAD_ARGS; }
-
-
-    Argument argument = NAN;
-    char jump_text_argument [MAX_LABEL_LEN] = "";
-
-    sscanf (source, "%*s %s", jump_text_argument);
-
-
-    size_t i = _find_label (label_list, jump_text_argument);
-    argument = (double) label_list [i].ip;
-
-
-    Command_code command_code = JUMP;
-    _binary_array_write (commands, &command_code, Command_code_size, bytes_filled);
-    _binary_array_write (commands, &argument,     Argument_size,     bytes_filled);
-
-
-    return SUCCESS;
-}
-
-//copypast - almost the same as _asm_case_jump - how to fix?
-Return_code  _asm_case_call  (char* source, Label* label_list, void* commands, size_t* bytes_filled, size_t command_ind) {
+Return_code  _asm_case_jumping_cmd  (char* source, Label* label_list, void* commands, size_t* bytes_filled, Command_code command_code) {
 
     
     if (!source || !label_list || !commands || !bytes_filled) { LOG_ERROR (BAD_ARGS); return BAD_ARGS; }
@@ -463,12 +287,11 @@ Return_code  _asm_case_call  (char* source, Label* label_list, void* commands, s
     argument = (double) label_list [i].ip;
 
 
-    Command_code command_code = CALL;
     _binary_array_write (commands, &command_code, Command_code_size, bytes_filled);
     _binary_array_write (commands, &argument,     Argument_size,     bytes_filled);
 
 
-    IF_CREATING_LISTING_FILE (_listing_write (command_ind, command_code, "call", argument));
+    IF_CREATING_LISTING_FILE (_listing_write (*bytes_filled - Command_code_size - Argument_size, command_code, _get_command_name (command_code), argument));
     return SUCCESS;
 }
 
@@ -679,4 +502,26 @@ Argument_and_mode _parse_solo_in_brackets (char* argument) {
 
     LOG_ERROR (BAD_ARGS); return {NAN, 0};
 }
+
+
+
+
+#define DEF_CMD(name, ...)\
+    case name:\
+        return #name;
+
+
+const char*  _get_command_name  (Command_code command_code) {
+
+    switch (command_code) {
+
+        case UNKNOWN_CODE: return nullptr;
+
+        #include "headers/cmd.h"
+
+        default: return nullptr;
+    }
+}
+#undef DEF_CMD
+
 

@@ -22,6 +22,7 @@ Return_code  processor_run  (const char* source_name, const char* out_name) {
     Return_code return_code = greetings (preamble.version, preamble.signature_first_letter, preamble.signature_second_letter);
     if (return_code) { LOG_ERROR (return_code); return return_code; }
 
+
     #define DEF_REG(name, ...) .name = NAN, 
     Processor processor = {
         .ip = 0, .code = nullptr,
@@ -40,15 +41,16 @@ Return_code  processor_run  (const char* source_name, const char* out_name) {
 
 
     Command_code command_code = UNKNOWN_CODE;
-    Command_mode command_mode = 0;
     Argument     argument     = NAN;
 
-    bool halt_seen_flag = false;
 
+    #define DEF_CMD(name, code, args, mode, asm, proc, ...)\
+        case name:\
+            proc;
 
     for ( ; processor.ip < preamble.out_file_size; ) {
 
-        command_code  = * (Command_code*) ( (char*) processor.code + processor.ip);
+        command_code  = * (Command_code*) ( (char*) processor.code + processor.ip); //printf ("%d %zd\n", command_code, processor.ip);
         processor.ip += Command_code_size;
 
 
@@ -59,155 +61,13 @@ Return_code  processor_run  (const char* source_name, const char* out_name) {
                 LOG_ERROR (BAD_ARGS);
                 return BAD_ARGS;
 
-            case HALT:
-
-                halt_seen_flag = true;
-                break;
-
-            case OUT:
-
-                fprintf (out, "%lf\n", stack_pop (processor.stack).value ); //func
-                break;
-
-            case PUSH:
-
-                command_mode = * (Command_mode*) ( (char*) processor.code + processor.ip); processor.ip += Command_mode_size;
-                argument     = * (Argument*)     ( (char*) processor.code + processor.ip); processor.ip += Argument_size;
-                if (isnan (argument)) { argument = 0; }
-
-
-                if (command_mode >> 2) {
-
-                    Argument* register_adress = _get_register_adress (&processor, command_mode >> 2);
-                    if (!register_adress) {
-
-                        LOG_ERROR (BAD_ARGS);
-                        return BAD_ARGS;
-                    }
-
-                    if (isnan (*register_adress)) {
-
-                        LOG_MESSAGE ("register is filled with poison!");
-                        return BAD_ARGS;
-                    }
-
-                    argument += *register_adress;;
-                }
-
-                if (command_mode & 2) {
-
-                    if ( round (argument) < 0 || (size_t) round (argument) >= processor.memory_capacity) {
-
-                        LOG_MESSAGE ("segmentation fault");
-                        LOG_ERROR (BAD_ARGS);
-                        return BAD_ARGS;
-                    }
-
-                    argument = processor.memory [ (size_t) argument];
-                    if (isnan (argument)) {
-
-                        LOG_MESSAGE ("memory cell is filled with poison!"); //dump
-                        return BAD_ARGS;
-                    }
-                }
-
-                stack_push (processor.stack, argument);
-
-                break;
-
-            case POP: {
-
-                command_mode = * (Command_mode*) ( (char*) processor.code + processor.ip); processor.ip += Command_mode_size;
-                argument     = * (Argument*)     ( (char*) processor.code + processor.ip); processor.ip += Argument_size;
-                Argument* write_target = nullptr;
-
-                if (!(command_mode & 2) && !isnan (argument)) { LOG_MESSAGE ("can't write into the constant"); return BAD_ARGS; }
-                if (isnan (argument)) { argument = 0; }
-
-
-                if (command_mode >> 2) {
-
-                    write_target = _get_register_adress (&processor, command_mode >> 2);
-                    if (!write_target) {
-
-                        LOG_ERROR (BAD_ARGS);
-                        return BAD_ARGS;
-                    }
-                }
-
-                if (command_mode & 2) {
-
-                    if (write_target) { argument += *write_target; }
-                    if ( round (argument) < 0 || (size_t) round (argument) >= processor.memory_capacity) {
-
-                        LOG_MESSAGE ("segmentation fault");
-                        LOG_ERROR (BAD_ARGS);
-                        return BAD_ARGS;
-                    }
-
-                    write_target = &processor.memory [ (size_t) argument];
-                }
-
-
-                Return_code pop_return_code = BAD_ARGS;
-                *write_target = stack_pop (processor.stack, &pop_return_code).value;
-                if (pop_return_code) { LOG_ERROR (pop_return_code); return pop_return_code; }
-
-
-                break;
-            }
-
-            case ADD:
-
-                stack_push (processor.stack, stack_pop (processor.stack).value + stack_pop (processor.stack).value);
-                break;
-
-            case SUBSTRACT:
-
-                stack_push (processor.stack, - stack_pop (processor.stack).value + stack_pop (processor.stack).value);
-                break;
-
-            case MULTIPLY:
-
-                stack_push (processor.stack, stack_pop (processor.stack).value * stack_pop (processor.stack).value);
-                break;
-
-            case DIVIDE:
-
-                stack_push (processor.stack, 1 / stack_pop (processor.stack).value * stack_pop (processor.stack).value);
-                break;
-
-            case JUMP:
-
-                processor.ip = (size_t) round ( * (Argument*) ( (char*) processor.code + processor.ip));
-                break;
-
-            case DUPLICATE:
-
-                argument = stack_pop (processor.stack).value;
-                stack_push (processor.stack, argument);
-                stack_push (processor.stack, argument);
-                break;
-
-            case CALL:
-
-                stack_push (processor.function_call_stack, (double) processor.ip);
-                processor.ip = (size_t) round ( * (Argument*) ( (char*) processor.code + processor.ip));
-                break;
-
-            case RETURN:
-
-                processor.ip = (size_t) stack_pop (processor.function_call_stack).value;
-                break;
+            #include "headers/cmd.h"
 
             default:
 
                 LOG_ERROR (BAD_ARGS);
                 return BAD_ARGS;
         }
-
-
-        if (halt_seen_flag) { break; }
     }
 
 
@@ -324,6 +184,107 @@ Return_code  _poison_memory  (Processor* processor) {
 
 
     return SUCCESS;
+}
+
+
+Return_code  _processor_case_push  (Processor* processor) {
+
+    Command_mode command_mode = * (Command_mode*) ( (char*) processor->code + processor->ip); processor->ip += Command_mode_size;
+    Argument     argument     = * (Argument*)     ( (char*) processor->code + processor->ip); processor->ip += Argument_size;
+    if (isnan (argument)) { argument = 0; }
+
+
+    if (command_mode >> 2) {
+
+        Argument* register_adress = _get_register_adress (processor, command_mode >> 2);
+        if (!register_adress) {
+
+            LOG_ERROR (BAD_ARGS);
+            return BAD_ARGS;
+        }
+
+        if (isnan (*register_adress)) {
+
+            LOG_MESSAGE ("register is filled with poison!");
+            return BAD_ARGS;
+        }
+
+        argument += *register_adress;;
+    }
+
+    if (command_mode & 2) {
+
+        if ( round (argument) < 0 || (size_t) round (argument) >= processor->memory_capacity) {
+
+            LOG_MESSAGE ("segmentation fault");
+            LOG_ERROR (BAD_ARGS);
+            return BAD_ARGS;
+        }
+
+        argument = processor->memory [ (size_t) argument];
+        if (isnan (argument)) {
+
+            LOG_MESSAGE ("memory cell is filled with poison!"); //dump
+            return BAD_ARGS;
+        }
+    }
+
+    return stack_push (processor->stack, argument);
+}
+
+
+Return_code  _processor_case_pop  (Processor* processor) {
+
+    Command_mode command_mode = * (Command_mode*) ( (char*) processor->code + processor->ip); processor->ip += Command_mode_size;
+    Argument     argument     = * (Argument*)     ( (char*) processor->code + processor->ip); processor->ip += Argument_size;
+    Argument*    write_target = nullptr;
+
+    if (!(command_mode & 2) && !isnan (argument)) { LOG_MESSAGE ("can't write into the constant"); return BAD_ARGS; }
+    if (isnan (argument)) { argument = 0; }
+
+
+    if (command_mode >> 2) {
+
+        write_target = _get_register_adress (processor, command_mode >> 2);
+        if (!write_target) {
+
+            LOG_ERROR (BAD_ARGS);
+            return BAD_ARGS;
+        }
+    }
+
+    if (command_mode & 2) {
+
+        if (write_target) { argument += *write_target; }
+        if ( round (argument) < 0 || (size_t) round (argument) >= processor->memory_capacity) {
+
+            LOG_MESSAGE ("segmentation fault");
+            LOG_ERROR (BAD_ARGS);
+            return BAD_ARGS;
+        }
+
+        write_target = &processor->memory [ (size_t) argument];
+    }
+
+
+    Return_code pop_return_code = BAD_ARGS;
+    *write_target = stack_pop (processor->stack, &pop_return_code).value;
+    if (pop_return_code) { LOG_ERROR (pop_return_code); return pop_return_code; }
+
+
+    return SUCCESS;
+}
+
+
+int  double_compare  (double first, double second) {
+
+    assert (!isnan(first) && !isnan(second));
+
+    if      (fabs (first - second) < EPSILON) { return 0;  }
+
+    else if (first > second)                  { return 1;  }
+
+    else  /*(first < second)*/                { return -1; }
 }
 
 

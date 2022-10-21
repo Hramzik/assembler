@@ -23,13 +23,42 @@ Return_code disassembler  (const char* source_name, const char* out_name) {
     fread (&preamble, 1, Preamble_size, source);
 
 
-    Command_code command_code = UNKNOWN_CODE;
-    Command_mode command_mode = 0;
-    Argument     argument     = NAN;
+    Command_code command_code  = UNKNOWN_CODE;
+    Command_mode command_mode  = 0;
+    Argument     argument      = NAN;
+    const char*  register_name = nullptr;
 
     for (size_t bytes_read = 0; bytes_read < preamble.out_file_size; ) {
 
         bytes_read += fread (&command_code, 1, Command_code_size, source);
+
+
+        #define DEF_CMD(name, code, args, mode, ...)\
+\
+            case name:\
+\
+                fprintf (out, "%s", #name);\
+                if (args) {\
+\
+                    fprintf (out, " ");\
+                    if (mode) {\
+\
+                        bytes_read += fread (&command_mode, 1, Command_mode_size, source);\
+\
+                        if (command_mode >> 2) { register_name = _get_register_name (command_mode >> 2); }\
+\
+                        if (command_mode & 2)  { fprintf (out, "["); }\
+                        if (command_mode >> 2) { fprintf (out, "%s", register_name); }\
+                    }\
+\
+                    bytes_read += fread (&argument, 1, Argument_size, source);\
+                    if ( (command_mode & 1) && (command_mode >> 2) )  { fprintf (out, " + "); }\
+                    if (!isnan (argument)) { fprintf (out, "%lf", argument); }\
+\
+                    if (mode && (command_mode & 2) ) { fprintf (out, "]"); }\
+                }\
+\
+                break;
 
 
         switch (command_code) {
@@ -39,76 +68,7 @@ Return_code disassembler  (const char* source_name, const char* out_name) {
                 LOG_ERROR (BAD_ARGS);
                 return BAD_ARGS;
 
-            case HALT:
-
-                fprintf (out, "halt");
-                break;
-
-            case OUT:
-
-                fprintf (out, "out");
-                break;
-
-            case PUSH:
-
-                fprintf (out, "push ");
-
-                bytes_read += fread (&command_mode, 1, Command_mode_size, source);
-                bytes_read += fread (&argument,     1, Argument_size,     source);
-
-                fprintf (out, "%lf", argument); //KOSTIL!!!!!!!!!!! SHOULD CHECK COMMAND_MODE
-
-
-                break;
-
-            case POP:
-
-                fprintf (out, "pop");
-                break;
-
-            case ADD:
-
-                fprintf (out, "add");
-                break;
-
-            case SUBSTRACT:
-
-                fprintf (out, "sub");
-                break;
-
-            case MULTIPLY:
-
-                fprintf (out, "mult");
-                break;
-
-            case DIVIDE:
-
-                fprintf (out, "divide");
-                break;
-
-            case JUMP:
-
-                fprintf (out, "jump");
-                break;
-
-            case DUPLICATE:
-
-                fprintf (out, "duplicate");
-                break;
-
-            case CALL:
-
-            fprintf (out, "call ");
-
-            bytes_read += fread (&argument, 1, Argument_size, source);
-            fprintf (out, "%lf", argument);
-            break;
-
-            case RETURN:
-
-                fprintf (out, "return");
-                break;
-
+            #include "headers/cmd.h"
             default:
 
                 LOG_ERROR (BAD_ARGS);
@@ -126,5 +86,44 @@ Return_code disassembler  (const char* source_name, const char* out_name) {
 
     return SUCCESS;
 }
+#undef DEF_CMD
 
+
+
+
+#define DEF_REG(name, num)\
+    case num:\
+        return #name;
+
+const char*  _get_register_name  (Command_mode register_num) {
+
+    switch (register_num) {
+
+        #include "headers/reg.h"
+
+        default: return nullptr;
+    }
+}
+#undef DEF_REG
+
+
+
+
+#define DEF_CMD(name, ...)\
+    case name:\
+        return #name;
+
+
+const char*  _get_command_name  (Command_code command_code) {
+
+    switch (command_code) {
+
+        case UNKNOWN_CODE: return nullptr;
+
+        #include "headers/cmd.h"
+
+        default: return nullptr;
+    }
+}
+#undef DEF_CMD
 

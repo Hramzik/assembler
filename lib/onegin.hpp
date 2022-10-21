@@ -8,6 +8,8 @@
 
 
 
+#include <ctype.h>
+#include <sys/stat.h>
 
 #include "logs.hpp"
 #include "types/Text.hpp"
@@ -45,7 +47,7 @@ Return_code print_lines_spaceless  (Text* ptrtext);
 Return_code fprint_lines           (Text* ptrtext, const char* file_name, const char* file_mode);
 Return_code fprint_lines_spaceless (Text* ptrtext, const char* file_name, const char* file_mode);
 bool        isblank                (char* str);
-bool        isdash                 (char* srt);
+bool        is_no_commands         (const char* str);
 
 Return_code cleanmemory            (Text* ptrtext);
 
@@ -654,9 +656,9 @@ bool  isblank  (char* str) {
 }
 
 
-bool  isdash  (char* srt) {
+bool  is_no_commands  (const char* str) {
 
-    bool dash_seen = false;
+    char next = '{';
 
 
     for (size_t i = 0; str[i] != '\0'; i++) {
@@ -666,10 +668,13 @@ bool  isdash  (char* srt) {
             case ' ':  break;
             case '\n': break;
             case '\t': break;
-            case '-':  if (!dash_seen) { dash_seen = true; break; } else { return false; }
+            case '{':  if (next == '{') { next = ';';  break; } else { return false; }
+            case ';':  if (next == ';') { next = '}';  break; } else { return false; }
+            case '}':  if (next == '}') { next = '\0'; break; } else { return false; }
             default:   return false;
         }
     }
+
 
     return true;
 }

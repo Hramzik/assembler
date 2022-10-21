@@ -21,6 +21,8 @@
 #define default_memory_capacity 100
 
 #define wanted_signature "WW"
+
+#define EPSILON 0.001
 //--------------------------------------------------
 
 
@@ -50,7 +52,9 @@ bool        isinteractive        (int num_str, char** string_array);
 Return_code initialize_processor (Processor* processor, size_t commands_size, size_t memory_capacity = default_memory_capacity);
 Argument*   _get_register_adress (Processor* processor, Argument _reg_num);
 Return_code _poison_memory       (Processor* processor);
-
+Return_code _processor_case_push (Processor* processor);
+Return_code _processor_case_pop  (Processor* processor);
+int          double_compare      (double first, double second);
 
 
 

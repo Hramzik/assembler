@@ -17,12 +17,13 @@
 
 //#define work_folder               work/
 #define default_listing_file_name "work/listing.txt"
-#define default_source_file_name  "work/code.txt"
+#define default_source_file_name  "work/factorial.txt"
 #define default_output_file_name  "work/out.txt"
 
-const size_t MAX_COMMAND_LEN = 40;
-const size_t MAX_LABEL_LEN   = 40;
-const size_t MAX_LABEL_COUNT = 40;
+const size_t MAX_COMMAND_LEN   = 40;
+const size_t MAX_LABEL_LEN     = 40;
+const size_t MAX_LABEL_COUNT   = 40;
+const size_t MAX_FILE_NAME_LEN = 40;
 //--------------------------------------------------
 
 
@@ -53,17 +54,16 @@ typedef struct Argument_and_mode_structure Argument_and_mode;
 Command_code      _get_command_code       (char* command);
 Return_code       assembler               (const char* source_name = default_source_file_name, const char* out_name = default_output_file_name);
 Return_code       _binary_array_write     (void* array, void* filler, size_t size, size_t* bytes_filled);
-Return_code       _listing_write          (size_t command_ind, Command_code command_code, const char* command, Argument argument = NAN, Command_mode command_mode = -1);
+Return_code       _listing_write          (size_t bytes_filled, Command_code command_code, const char* command, Argument argument = NAN, Command_mode command_mode = -1);
 bool              _islabel                (char* str);
 Return_code       _collect_labels         (Label* label_list, const Text* source_lines);
-Return_code       _asm_case_jump          (char* source, Label* label_list, void* commands, size_t* bytes_filled);
-Return_code       _asm_case_call          (char* source, Label* label_list, void* commands, size_t* bytes_filled, size_t command_ind);
+Return_code       _asm_case_jumping_cmd   (char* source, Label* label_list, void* commands, size_t* bytes_filled, Command_code command_code);
 size_t            _find_label             (Label* label_list, char* label_str);
 Argument_and_mode _parse_args             (char* source);
 Register          _get_register_code      (char* source);
 Argument_and_mode _parse_args_in_brackets (char* argument);
 Argument_and_mode _parse_solo_in_brackets (char* argument);
-
+const char*       _get_command_name       (Command_code command_code);
 
 
 

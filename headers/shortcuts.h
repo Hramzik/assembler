@@ -19,7 +19,7 @@
 #define IP                 processor.ip
 #define CODE               processor.code
 #define DK(a, b)           double_compare (a, b)
-
+#define MEMORY             processor.memory
 
 
 

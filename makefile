@@ -16,20 +16,24 @@ default_name = prog
 
 
 all:
-	$(call compile, mainasm.cpp,    asm.cpp,    asm)
-	$(call compile, maindisasm.cpp, disasm.cpp, disasm)
-	$(call compile, mainproc.cpp,   proc.cpp,   proc)
+	$(call compile, mainasm.cpp,      asm.cpp,      asm)
+	$(call compile, maindisasm.cpp,   disasm.cpp,   disasm)
+	$(call compile, mainproc.cpp,     proc.cpp,     proc)
+	$(call compile, maingenerate.cpp, generate.cpp, generate)
 
 
 
 asm:
-	$(call compile, mainasm.cpp,    asm.cpp,    $(default_name) )
+	$(call compile, mainasm.cpp,      asm.cpp,      $(default_name) )
 
 disasm:
-	$(call compile, maindisasm.cpp, disasm.cpp, $(default_name) )
+	$(call compile, maindisasm.cpp,   disasm.cpp,   $(default_name) )
 
 proc:
-	$(call compile, mainproc.cpp,   proc.cpp,   $(default_name) )
+	$(call compile, mainproc.cpp,     proc.cpp,     $(default_name) )
+
+generate:
+	$(call compile, maingenerate.cpp, generate.cpp, $(default_name) )
 
 test:
-	$(call compile, test.cpp,               ,   $(default_name) )
+	$(call compile, test.cpp,                   ,   $(default_name) )

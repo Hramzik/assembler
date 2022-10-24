@@ -43,7 +43,7 @@ Return_code  assembler  (const char* source_name, const char* out_name) {
 
 
     char              command [MAX_COMMAND_LEN] = "";
-    size_t            commands_size             = source_lines->num_lines * (Command_code_size + Argument_size);
+    size_t            commands_size             = source_lines->num_lines * (Command_code_size + Argument_size + Command_mode_size);
     void*             commands                  = calloc (1, commands_size);
     Argument_and_mode argument_and_mode         = {NAN, 0};
 
@@ -53,7 +53,7 @@ Return_code  assembler  (const char* source_name, const char* out_name) {
 
         if (isblank (source_lines->lines[line_ind].ptr)) { continue; }
 
-        sscanf (source_lines->lines[line_ind].ptr, "%s", command);
+        sscanf (source_lines->lines[line_ind].ptr, "%s", command); //printf ("%zd - %s - ", line_ind, source_lines->lines[line_ind].ptr);
 
         Command_code command_code = _get_command_code (command);
 
@@ -125,6 +125,7 @@ Return_code  assembler  (const char* source_name, const char* out_name) {
         #undef DEF_CMD
 
         command_ind++;
+        //printf ("ok\n");
     }
 
 

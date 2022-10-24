@@ -2,7 +2,7 @@
 
 //       name       code args mode asm proc
 DEF_CMD (HALT,       1,   0,   0,   {;},
-        { IP = 99999;
+        { IP = preamble.out_file_size;
         break; })
 
 DEF_CMD (OUT,        2,   0,   0,   {;},
@@ -71,3 +71,14 @@ DEF_CMD (name,     num,   1,   0,\
 #include "jump.h"
 #undef DEF_JMP
 
+DEF_CMD (SQRT,     19,   0,   0,   {;},
+        { PUSH (STACK, sqrt (POP (STACK)));
+        break; })
+
+DEF_CMD (SHOW,      20,   1,   0,   {;},
+        { for (size_t i = 0; i < (size_t) round ( * (Argument*) ( (char*) CODE + IP)); i++) {
+            if (isnan (MEMORY [i])) { printf ("X"); }
+            else                    { printf ("%c", (char) round (MEMORY [i])); }
+        }
+        IP += Argument_size;
+        break; })

@@ -17,7 +17,7 @@
 
 //#define work_folder               work/
 #define default_listing_file_name "work/listing.txt"
-#define default_source_file_name  "work/factorial.txt"
+#define default_source_file_name  "work/code.txt"
 #define default_output_file_name  "work/out.txt"
 
 const size_t MAX_COMMAND_LEN   = 40;

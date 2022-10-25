@@ -61,11 +61,13 @@ Return_code  processor_run  (const char* source_name, const char* out_name) {
                 LOG_ERROR (BAD_ARGS);
                 return BAD_ARGS;
 
+
             #include "headers/cmd.h"
+
 
             default:
 
-                LOG_ERROR (BAD_ARGS); //printf ("%d %zd", command_code, processor.ip);
+                LOG_ERROR (BAD_ARGS); //printf ("%d %zd", command_code, processor.ip); 
                 return BAD_ARGS;
         }
     }

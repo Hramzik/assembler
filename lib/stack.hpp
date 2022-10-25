@@ -235,8 +235,7 @@ Return_code  _stack_resize  (Stack* stack, size_t new_capacity) {
     for (size_t i = stack->size; i < new_capacity; i++) { stack->elements [i] = Element {NAN, true}; }
 
     stack->capacity = new_capacity;
-    //printf ("%zd %zd\n", stack->capacity, new_capacity);
-    //STACK_DUMP (stack);
+
 
     if (stack->size > new_capacity) { stack->size = new_capacity; }
 
@@ -255,7 +254,7 @@ IF_CANARY_PROTECTED (
 
     Return_code  _stack_canary_resize  (Stack* stack, size_t new_capacity) {
 
-        ASSERT_STACK_OK (stack); //putc('a', stderr);
+        ASSERT_STACK_OK (stack);
 
         size_t new_size = new_capacity * sizeof (Element) + 2 * CANARY_SIZE;
 
@@ -272,7 +271,7 @@ IF_CANARY_PROTECTED (
 
 
             stack->elements = (Element*) ( (char*) stack->elements + CANARY_SIZE ) + stack->capacity;
-            canary_t second_canary_buffer = *( (canary_t*) stack->elements ); //fprintf (stderr, "%llX", second_canary_buffer);
+            canary_t second_canary_buffer = *( (canary_t*) stack->elements );
 
 
             for (size_t i = 0; i < new_capacity - stack->capacity; i++) {
@@ -282,7 +281,6 @@ IF_CANARY_PROTECTED (
 
 
             *( (canary_t*) (stack->elements + new_capacity - stack->capacity) ) = second_canary_buffer;
-            //printf ("%llX", * ( (canary_t*) (stack->elements + new_capacity - stack->capacity) ) );
 
 
             stack->elements -= stack->capacity;
@@ -333,7 +331,7 @@ Return_code  stack_push  (Stack* stack, Element_value new_element_value) {
 
     if (stack->size == stack->capacity) {
 
-        Return_code resize_code = SUCCESS; // А СТОИТ ЛИ ОНО ТОГО????? ЗАЧЕМММММММММММММММММММММ
+        Return_code resize_code = SUCCESS;
 
         if (!stack->capacity) {
 
@@ -346,7 +344,7 @@ Return_code  stack_push  (Stack* stack, Element_value new_element_value) {
 
         if (resize_code) { LOG_ERROR (resize_code);  STACK_ERROR_DUMP (stack); return resize_code; }
     }
-   // STACK_DUMP (stack);
+
 
     stack->size += 1;
     stack->elements [stack->size - 1] = Element {new_element_value, false};
@@ -436,8 +434,8 @@ Stack_state  stack_damaged  (Stack* stack) {
 
     IF_HASH_PROTECTED (
 
-        hash_t old_hash = stack->hash; //printf ("hash in stack - %llX\n", old_hash);
-        STACK_RECOUNT_HASH (stack);    //printf ("hash after check - %llX\n", stack->hash);
+        hash_t old_hash = stack->hash;
+        STACK_RECOUNT_HASH (stack);
         if (old_hash != stack->hash) { stack_state |= (1<<6); }
     );
 
@@ -513,7 +511,7 @@ void  _fstack_dump  (Stack* stack, const char* file_name, const char* file, cons
         if (i < stack->size) { fprintf (dump_file, "(in)  "); }
         else                 { fprintf (dump_file, "(out) "); }
 
-        fprintf (dump_file, "[%zd] = %-5lg (", i, stack->elements[i].value);         // different fprintf function
+        fprintf (dump_file, "[%zd] = %-5lg (", i, stack->elements[i].value);
         if (stack->elements[i].poisoned) { fprintf (dump_file,     "poisoned)\n"); }
         else                             { fprintf (dump_file, "not poisoned)\n"); }
     }
@@ -604,7 +602,7 @@ IF_HASH_PROTECTED (
         hash_t hash3 = hash300 ( (char*) stack->elements - CANARY_SIZE, stack->capacity + 2 * CANARY_SIZE);
 
 
-        stack->hash = hash1 ^ hash2 ^ hash3; //printf ("%llX ^ %llX ^ %llX = %llX\n", hash1, hash2, hash3, stack->hash);
+        stack->hash = hash1 ^ hash2 ^ hash3;
 
 
         return SUCCESS;

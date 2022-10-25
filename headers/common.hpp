@@ -10,12 +10,16 @@
 
 
 #include <sys\stat.h>
+#include <unistd.h>
 #include <locale.h>
 #include <string.h>
 #include <ctype.h>
 #include <math.h>
 
 #include "../lib/Return_code.hpp"
+
+
+const size_t MAX_FILE_NAME_LEN = 40;
 
 
 #define DEF_CMD(name, code, ...) name = code,

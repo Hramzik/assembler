@@ -2,10 +2,11 @@
 #include <string.h>
 #include "lib/logs.hpp"
 
-#define DEF_CMD(name, code, args, mode, asm, ...) printf (#asm); printf ("\n");
+#define a 'b'
+#define a 'c'
 
 int main () {
 
-    #include "headers/cmd.h"
+    printf ("%c", a);
 
 }

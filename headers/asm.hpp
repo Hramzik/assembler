@@ -15,15 +15,13 @@
 //-------------------- SETTINGS --------------------
 #define CREATE_LISTING_FILE
 
-//#define work_folder               work/
 #define default_listing_file_name "work/listing.txt"
-#define default_source_file_name  "work/code.txt"
+#define default_source_file_name  "work/generated.txt"
 #define default_output_file_name  "work/out.txt"
 
 const size_t MAX_COMMAND_LEN   = 40;
 const size_t MAX_LABEL_LEN     = 40;
 const size_t MAX_LABEL_COUNT   = 40;
-const size_t MAX_FILE_NAME_LEN = 40;
 //--------------------------------------------------
 
 

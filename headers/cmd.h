@@ -58,6 +58,7 @@ DEF_CMD (RET,    12,   0,   0,   {;},
         { IP = (size_t) POP (F_C_STACK);
         break; })
 
+
 #define DEF_JMP(name, num, test)\
 DEF_CMD (name,     num,   1,   0,\
     { _asm_case_jumping_cmd (SRC, label_list, commands, BF, name); break; },\
@@ -71,6 +72,7 @@ DEF_CMD (name,     num,   1,   0,\
 #include "jump.h"
 #undef DEF_JMP
 
+
 DEF_CMD (SQRT,     19,   0,   0,   {;},
         { PUSH (STACK, sqrt (POP (STACK)));
         break; })
@@ -82,3 +84,17 @@ DEF_CMD (SHOW,      20,   1,   0,   {;},
         }
         IP += Argument_size;
         break; })
+
+DEF_CMD (SLEEP,    21,   1,   0,   {;},
+        { usleep ( (useconds_t) round ( * (Argument*) ( (char*) CODE + IP) * 1000 * 1000) );
+        IP += Argument_size;
+        break; })
+
+DEF_CMD (SETOUTBUF,22,   0,   0,   {;},
+        { setvbuf (stdout, nullptr, _IOFBF, 2048);
+        break; })
+
+DEF_CMD (FLUSHOUT, 23,   0,   0,   {;},
+        { fflush (stdout);
+        break; })
+

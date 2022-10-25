@@ -1,6 +1,0 @@
-21.10.2022 19:18:52| wrong parameters given to the function Return_code processor_run(const char*, const char*) in file proc.cpp (line 68)
-21.10.2022 19:21:29| wrong parameters given to the function Return_code processor_run(const char*, const char*) in file proc.cpp (line 68)
-21.10.2022 19:28:54| wrong parameters given to the function Return_code processor_run(const char*, const char*) in file proc.cpp (line 68)
-21.10.2022 19:43:00| wrong parameters given to the function Return_code processor_run(const char*, const char*) in file proc.cpp (line 68)
-21.10.2022 19:43:43| wrong parameters given to the function Return_code processor_run(const char*, const char*) in file proc.cpp (line 68)
-21.10.2022 20:14:47| wrong parameters given to the function Return_code processor_run(const char*, const char*) in file proc.cpp (line 68)

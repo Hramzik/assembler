@@ -15,35 +15,50 @@ Return_code generate (const char* source_name, const char* dest_name) {
 
 
     Text* source_lines  = initialize_text (source_name); //
-    size_t max_line_len = 0;
-    for (size_t i = 0; i < source_lines->num_lines; i++) {
 
-        if (strlen (source_lines->lines[i].ptr) > max_line_len) { max_line_len = strlen (source_lines->lines[i].ptr); }
-    }
+
+    fprintf (dest, "setoutbuf\n");
 
 
     size_t simbol_num = 0;
+    size_t g          = 0;
     for (size_t i = 0; i < source_lines->num_lines; i++) {
 
+        if (is_split (source_lines->lines[i].ptr)) { 
+
+            fprintf (dest, "FLUSHOUT\n");
+            fprintf (dest, "sleep %lf\n", 0.5);
+
+
+            for (g = 0; g < 40; g++) {
+            
+                fprintf (dest, "push %d\n", '\n');
+                fprintf (dest, "pop [%zd]\n", g);
+            }
+
+
+            fprintf (dest, "show  %zd\n", g);
+            continue;
+        }
+
+
         simbol_num = 0;
-        for (size_t g = 0; g < strlen (source_lines->lines[i].ptr); g++) {
+        for (g = 0; g < strlen (source_lines->lines[i].ptr); g++) {
 
             fprintf (dest, "push %d\n", source_lines->lines[i].ptr[g]);
             fprintf (dest, "pop [%zd]\n", simbol_num);
             simbol_num++;
         }
 
-        /*for (size_t g = strlen(source_lines->lines[i].ptr); g < max_line_len; g++) {
+        if ( i < (source_lines->num_lines - 1) && !is_split (source_lines->lines[i+1].ptr)) {
 
-            fprintf (dest, "push %d\n", ' ');
-            fprintf (dest, "pop [%zd]\n", simbol_num);
-            simbol_num++;
-        }*/ // заполнение пробелами до максимума
+            fprintf (dest, "push %d\n", '\n');
+            fprintf (dest, "pop [%zd]\n",  simbol_num);
+            simbol_num += 1; // for '\n'
+        }
 
-        fprintf (dest, "push %d\n", '\n');
-        fprintf (dest, "pop [%zd]\n",  simbol_num);
 
-        fprintf (dest, "show %zd\n\n\n", simbol_num + 1); // for '\n'
+        fprintf (dest, "show %zd\n\n\n", simbol_num);
     }
 
     fprintf (dest, "halt");

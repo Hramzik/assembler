@@ -14,11 +14,10 @@
 
 
 //-------------------- SETTINGS --------------------
-//#define work_folder               work/
 #define default_source_file_name  "work/out.txt"
 #define default_output_file_name  "work/answer.txt"
 
-#define default_memory_capacity 100
+#define default_memory_capacity 1000
 
 #define wanted_signature "WW"
 

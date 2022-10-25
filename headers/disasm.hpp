@@ -19,7 +19,6 @@
 
 
 //-------------------- SETTINGS --------------------
-//#define work_folder               work/
 #define default_source_file_name  "work/out.txt"
 #define default_output_file_name  "work/original.txt"
 

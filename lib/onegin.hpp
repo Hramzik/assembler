@@ -48,6 +48,8 @@ Return_code fprint_lines           (Text* ptrtext, const char* file_name, const 
 Return_code fprint_lines_spaceless (Text* ptrtext, const char* file_name, const char* file_mode);
 bool        isblank                (char* str);
 bool        is_no_commands         (const char* str);
+bool        is_split               (const char* str);
+
 
 Return_code cleanmemory            (Text* ptrtext);
 
@@ -678,6 +680,35 @@ bool  is_no_commands  (const char* str) {
 
     return true;
 }
+
+
+bool  is_split  (const char* str) {
+
+    char next = 'S';
+
+
+    for (size_t i = 0; str[i] != '\0'; i++) {
+
+        switch (toupper(str[i])) {
+
+            case ' ':  break;
+            case '\n': break;
+            case '\t': break;
+            case 'S':  if (next == 'S') { next = 'P';  break; } else { return false; }
+            case 'P':  if (next == 'P') { next = 'L';  break; } else { return false; }
+            case 'L':  if (next == 'L') { next = 'I';  break; } else { return false; }
+            case 'I':  if (next == 'I') { next = 'T';  break; } else { return false; }
+            case 'T':  if (next == 'T') { next = '\0'; break; } else { return false; }
+            default:   return false;
+        }
+    }
+
+
+    return true;
+}
+
+
+
 
 
 

@@ -35,8 +35,7 @@ Return_code  assembler  (const char* source_name, const char* out_name) {
     if (source == nullptr || out == nullptr) { return FILE_ERR; }
 
 
-
-    Text* source_lines = initialize_text (source_name); //КОСТЫЛЬ!!! ПЕРЕПИСАТЬ через FILE*
+    Text* source_lines = initialize_text (source_name); //
 
     Label label_list [MAX_COMMAND_LEN] = {};
     try (_collect_labels (label_list, source_lines));
@@ -115,7 +114,9 @@ Return_code  assembler  (const char* source_name, const char* out_name) {
                     return BAD_ARGS;
                 }
 
+
             #include "headers/cmd.h"
+
 
             default:
 
@@ -130,10 +131,11 @@ Return_code  assembler  (const char* source_name, const char* out_name) {
 
 
     Preamble preamble = {'W', 'W', bytes_filled, command_ind, 1.0};
+    setvbuf (out, nullptr, _IOFBF, 1000*1000);
     fwrite ( &preamble, Preamble_size, 1, out);
 
     fwrite ( commands, bytes_filled,   1, out);
-
+    fflush (out);
 
     cleanmemory (source_lines);
 

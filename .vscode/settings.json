@@ -1,7 +1,0 @@
-{
-    "files.associations": {
-        "type_traits": "cpp",
-        "typeinfo": "cpp",
-        "cmath": "cpp"
-    }
-}

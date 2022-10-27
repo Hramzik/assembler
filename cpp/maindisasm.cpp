@@ -1,6 +1,6 @@
 
 
-#include "headers/disasm.hpp"
+#include "../headers/disasm.hpp"
 
 
 int main ()

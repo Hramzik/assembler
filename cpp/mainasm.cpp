@@ -1,6 +1,6 @@
 
 
-#include "headers/asm.hpp"
+#include "../headers/asm.hpp"
 
 
 int main (int argc, char** argv)

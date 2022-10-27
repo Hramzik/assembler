@@ -1,9 +1,9 @@
 
 
-#include "headers/disasm.hpp"
+#include "../headers/disasm.hpp"
 
-#include "lib/onegin.hpp"
-#include "lib/stack.hpp"
+#include "../lib/onegin.hpp"
+#include "../lib/stack.hpp"
 
 
 Return_code disassembler  (const char* source_name, const char* out_name) {
@@ -68,7 +68,7 @@ Return_code disassembler  (const char* source_name, const char* out_name) {
                 LOG_ERROR (BAD_ARGS);
                 return BAD_ARGS;
 
-            #include "headers/cmd.h"
+            #include "../headers/cmd.h"
             default:
 
                 LOG_ERROR (BAD_ARGS);
@@ -99,7 +99,7 @@ const char*  _get_register_name  (Command_mode register_num) {
 
     switch (register_num) {
 
-        #include "headers/reg.h"
+        #include "../headers/reg.h"
 
         default: return nullptr;
     }
@@ -120,7 +120,7 @@ const char*  _get_command_name  (Command_code command_code) {
 
         case UNKNOWN_CODE: return nullptr;
 
-        #include "headers/cmd.h"
+        #include "../headers/cmd.h"
 
         default: return nullptr;
     }

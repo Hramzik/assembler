@@ -1,6 +1,6 @@
 
 
-#include "headers/generate.hpp"
+#include "../headers/generate.hpp"
 
 
 int main (int argc, char** argv)

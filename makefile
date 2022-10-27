@@ -1,6 +1,8 @@
 
 
 cc = gcc
+cppfolder = cpp
+exefolder = exe
 
 define flags
 	-Wshadow -Winit-self -Wredundant-decls -Wcast-align -Wundef -Wfloat-equal -Winline -Wunreachable-code -Wmissing-declarations -Wmissing-include-dirs -Wswitch-enum -Wswitch-default -Weffc++ -Wmain -Wextra -Wall -g -pipe -fexceptions -Wcast-qual -Wconversion -Wctor-dtor-privacy -Wempty-body -Wformat-security -Wformat=2 -Wignored-qualifiers -Wlogical-op -Wmissing-field-initializers -Wnon-virtual-dtor -Woverloaded-virtual -Wpointer-arith -Wsign-promo -Wstrict-aliasing -Wstrict-null-sentinel -Wtype-limits -Wwrite-strings -D_DEBUG -D_EJUDGE_CLIENT_SIDE
@@ -12,28 +14,28 @@ endef
 
 sc = @ #showcommands
 default_name = prog
-
+default_path = $(exefolder)/$(default_name)
 
 
 all:
-	$(call compile, mainasm.cpp,      asm.cpp,      asm)
-	$(call compile, maindisasm.cpp,   disasm.cpp,   disasm)
-	$(call compile, mainproc.cpp,     proc.cpp,     proc)
-	$(call compile, maingenerate.cpp, generate.cpp, generate)
+	$(call compile, $(cppfolder)/mainasm.cpp,      $(cppfolder)/asm.cpp,      $(exefolder)/asm)
+	$(call compile, $(cppfolder)/maindisasm.cpp,   $(cppfolder)/disasm.cpp,   $(exefolder)/disasm)
+	$(call compile, $(cppfolder)/mainproc.cpp,     $(cppfolder)/proc.cpp,     $(exefolder)/proc)
+	$(call compile, $(cppfolder)/maingenerate.cpp, $(cppfolder)/generate.cpp, $(exefolder)/generate)
 
 
 
 asm:
-	$(call compile, mainasm.cpp,      asm.cpp,      $(default_name) )
+	$(call compile, $(cppfolder)/mainasm.cpp,      $(cppfolder)/asm.cpp,      $(default_path))
 
 disasm:
-	$(call compile, maindisasm.cpp,   disasm.cpp,   $(default_name) )
+	$(call compile, $(cppfolder)/maindisasm.cpp,   $(cppfolder)/disasm.cpp,   $(default_path))
 
 proc:
-	$(call compile, mainproc.cpp,     proc.cpp,     $(default_name) )
+	$(call compile, $(cppfolder)/mainproc.cpp,     $(cppfolder)/proc.cpp,     $(default_path))
 
 generate:
-	$(call compile, maingenerate.cpp, generate.cpp, $(default_name) )
+	$(call compile, $(cppfolder)/maingenerate.cpp, $(cppfolder)/generate.cpp, $(default_path))
 
 test:
-	$(call compile, test.cpp,                   ,   $(default_name) )
+	$(call compile, $(cppfolder)/test.cpp,                                  , $(default_path))

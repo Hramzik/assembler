@@ -1,6 +1,6 @@
 
 
-#include "headers/proc.hpp"
+#include "../headers/proc.hpp"
 
 
 int main (int argc, char** argv)

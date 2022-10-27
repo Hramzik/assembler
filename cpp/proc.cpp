@@ -1,8 +1,8 @@
 
 
-#include "headers/proc.hpp"
+#include "../headers/proc.hpp"
 
-#include "lib/stack.hpp"
+#include "../lib/stack.hpp"
 
 
 Return_code  processor_run  (const char* source_name, const char* out_name) {
@@ -26,7 +26,7 @@ Return_code  processor_run  (const char* source_name, const char* out_name) {
     #define DEF_REG(name, ...) .name = NAN, 
     Processor processor = {
         .ip = 0, .code = nullptr,
-        #include "headers/reg.h"
+        #include "../headers/reg.h"
         .memory = nullptr, .memory_capacity = 0, .stack = nullptr, .function_call_stack = nullptr
     };
     #undef DEF_REG
@@ -62,7 +62,7 @@ Return_code  processor_run  (const char* source_name, const char* out_name) {
                 return BAD_ARGS;
 
 
-            #include "headers/cmd.h"
+            #include "../headers/cmd.h"
 
 
             default:
@@ -137,7 +137,7 @@ Return_code  initialize_processor  (Processor* processor, size_t commands_size, 
     if (!processor->code) { LOG_ERROR (MEMORY_ERR); return MEMORY_ERR; }
 
 
-    #include "headers/reg.h"
+    #include "../headers/reg.h"
 
 
     processor->memory = (Argument*) calloc (memory_capacity * Argument_size, 1);
@@ -167,7 +167,7 @@ Argument*  _get_register_adress  (Processor* processor, Argument _reg_num) {
     size_t reg_num = (size_t) round (_reg_num);
     switch (reg_num) {
 
-        #include "headers/reg.h"
+        #include "../headers/reg.h"
         default: return nullptr;
     }
 }

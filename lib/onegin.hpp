@@ -704,6 +704,9 @@ bool  is_split  (const char* str) {
     }
 
 
+    if (next != '\0') { return false; }
+
+
     return true;
 }
 

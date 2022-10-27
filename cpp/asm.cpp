@@ -1,9 +1,9 @@
 
 
-#include "headers/asm.hpp"
+#include "../headers/asm.hpp"
 
-#include "lib/onegin.hpp"
-#include "lib/stack.hpp"
+#include "../lib/onegin.hpp"
+#include "../lib/stack.hpp"
 
 
 #define DEF_CMD(name, ...)\
@@ -15,7 +15,7 @@ Command_code  _get_command_code  (char* command) {
     if (command == nullptr) { return UNKNOWN_CODE; }
 
 
-    #include "headers/cmd.h"
+    #include "../headers/cmd.h"
 
 
     return UNKNOWN_CODE;
@@ -115,7 +115,7 @@ Return_code  assembler  (const char* source_name, const char* out_name) {
                 }
 
 
-            #include "headers/cmd.h"
+            #include "../headers/cmd.h"
 
 
             default:
@@ -257,7 +257,7 @@ Return_code  _collect_labels  (Label* label_list, const Text* source_lines) {
                     return BAD_ARGS;
                 }
 
-            #include "headers/cmd.h"
+            #include "../headers/cmd.h"
 
             default:
 
@@ -369,7 +369,7 @@ Register  _get_register_code  (char* source) {
         return UNKNOWN_REG;
     }
 
-    #include "headers/reg.h"
+    #include "../headers/reg.h"
     return UNKNOWN_REG;
 }
 #undef DEF_REG
@@ -520,7 +520,7 @@ const char*  _get_command_name  (Command_code command_code) {
 
         case UNKNOWN_CODE: return nullptr;
 
-        #include "headers/cmd.h"
+        #include "../headers/cmd.h"
 
         default: return nullptr;
     }

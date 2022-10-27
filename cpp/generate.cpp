@@ -1,8 +1,8 @@
 
 
-#include "headers/generate.hpp"
-#include "lib/logs.hpp"
-#include "lib/onegin.hpp"
+#include "../headers/generate.hpp"
+#include "../lib/logs.hpp"
+#include "../lib/onegin.hpp"
 
 
 Return_code generate (const char* source_name, const char* dest_name) {
@@ -21,36 +21,38 @@ Return_code generate (const char* source_name, const char* dest_name) {
 
 
     size_t simbol_num = 0;
-    size_t g          = 0;
-    for (size_t i = 0; i < source_lines->num_lines; i++) {
+    size_t line_len   = 0;
+    size_t i          = 0;
+    for (size_t line_num = 0; line_num < source_lines->num_lines; line_num++) {
 
-        if (is_split (source_lines->lines[i].ptr)) { 
+        if (is_split (source_lines->lines[line_num].ptr)) { 
 
             fprintf (dest, "FLUSHOUT\n");
             fprintf (dest, "sleep %lf\n", 0.5);
 
 
-            for (g = 0; g < 40; g++) {
+            for (i = 0; i < 40; i++) {
             
                 fprintf (dest, "push %d\n", '\n');
-                fprintf (dest, "pop [%zd]\n", g);
+                fprintf (dest, "pop [%zd]\n", i);
             }
 
 
-            fprintf (dest, "show  %zd\n", g);
+            fprintf (dest, "show  %zd\n", i);
             continue;
         }
 
 
         simbol_num = 0;
-        for (g = 0; g < strlen (source_lines->lines[i].ptr); g++) {
+        line_len = strlen (source_lines->lines[line_num].ptr);
+        for (i = 0; i < line_len; i++) {
 
-            fprintf (dest, "push %d\n", source_lines->lines[i].ptr[g]);
+            fprintf (dest, "push %d\n", source_lines->lines[line_num].ptr[i]);
             fprintf (dest, "pop [%zd]\n", simbol_num);
             simbol_num++;
         }
 
-        if ( i < (source_lines->num_lines - 1) && !is_split (source_lines->lines[i+1].ptr)) {
+        if ( line_num < (source_lines->num_lines - 1) && !is_split (source_lines->lines[line_num+1].ptr)) {
 
             fprintf (dest, "push %d\n", '\n');
             fprintf (dest, "pop [%zd]\n",  simbol_num);

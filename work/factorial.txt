@@ -1,0 +1,19 @@
+push 5
+call func:
+out
+halt
+
+func:
+dup
+push 1
+JE end:
+
+dup
+push 1
+sub
+call func:
+mul
+ret
+
+end:
+ret

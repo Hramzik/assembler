@@ -1,0 +1,126 @@
+push 1
+push 0
+push -1
+
+call solve:
+out
+halt
+
+
+solve:
+
+pop RCX
+pop RBX
+pop RAX
+
+push RAX
+push 0
+je a0:
+jump an0:
+
+a0:
+push RBX
+push 0
+je ab0:
+jump bn0:
+
+ab0:
+push RCX
+push 0
+je abc0:
+jump cn0:
+
+abc0:
+push 3
+out
+halt
+
+an0:
+push RBX
+push RBX
+mul
+push 4
+push RAX
+push RCX
+mul
+mul
+sub
+dup
+pop RDX
+
+dup
+push 0
+je de0:
+
+dup
+push 0
+ja da0:
+
+dup
+push 0
+jb db0:
+
+de0:
+push 1
+out
+push 0
+push RBX
+sub
+push 2
+div
+push RAX
+div
+out
+halt
+
+da0:
+push 2
+out
+
+push RDX
+sqrt
+push RBX
+sub
+push 2
+div
+push RAX
+div
+out
+
+push 0
+push RDX
+sqrt
+sub
+push RBX
+sub
+push 2
+push RAX
+mul
+div
+out
+
+halt
+
+db0:
+
+push 0
+out
+halt
+
+bn0:
+
+push 1
+out
+
+push 0
+push RCX
+sub
+push RBX
+div
+out
+halt
+
+cn0:
+push 0
+out
+halt
